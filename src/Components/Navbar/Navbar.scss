@@ -1,0 +1,64 @@
+@import "../../Scss/color";
+
+@mixin font($size, $weight) {
+	size: $size;
+	weight: $weight;
+}
+
+nav {
+	background-color: $navbarBgColor;
+	box-shadow: $boxShadow;
+	border-bottom: $navbarborder;
+	position: relative;
+}
+
+.navbar-brand {
+	text-transform: uppercase;
+
+	font: {
+		size: 1.2v;
+		weight: bold;
+	}
+}
+
+nav img {
+	width: 30px;
+	height: 30px;
+	margin-right: 5px;
+	position: relative;
+	top: -3px;
+}
+
+nav::after {
+	position: absolute;
+	content: "";
+	left: 0;
+	bottom: 0;
+	height: 3px;
+	width: 5px;
+	background-color: $dotColor;
+	color: $dotColor;
+	animation-name: dot;
+	animation-duration: 3s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+
+@keyframes dot {
+	0% {
+		left: 0;
+	}
+
+	100% {
+		left: 100%;
+	}
+}
+
+.bg-purple {
+	background-color: $purpleColor;
+}
+
+.dropdown-menu {
+	left: -125px;
+	background-color: #7280d1 !important;
+}

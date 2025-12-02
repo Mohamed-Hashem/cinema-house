@@ -1,0 +1,13 @@
+@import "../../Scss/color";
+
+[type="search"] {
+	::placeholder {
+		color: $searchBgColor !important;
+	}
+
+	:focus {
+		border-color: $searchBgColor !important;
+	}
+
+	border-color: $searchBgColor;
+}

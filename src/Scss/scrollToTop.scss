@@ -1,0 +1,23 @@
+@import 'color.scss';
+
+.back-to-top .top {
+    position: fixed;
+    cursor: pointer;
+    bottom: 15px;
+    right: 30px;
+    font-size: 25px;
+    color: $whiteColor;
+    background-color: $lightBgColor;
+    z-index: 10;
+    width: 45px;
+    height: 45px;
+    text-align: center;
+    line-height: 45px;
+    border-radius: 50%;
+    transition: color 1s, background-color 1s;
+
+    .top:hover {
+        color: $whiteColor;
+        background-color: $hover2Color;
+    }
+}

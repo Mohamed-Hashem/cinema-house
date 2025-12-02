@@ -1,0 +1,45 @@
+@import "../../Scss/color";
+
+footer {
+	position: relative;
+	bottom: -150px;
+	z-index: 0 !important;
+	background-color: $navbarBgColor;
+	overflow: hidden;
+
+	span {
+		font: {
+			size: 24px;
+			weight: 600;
+		}
+	}
+
+	a:hover {
+		color: $hover2Color;
+	}
+}
+
+footer::after {
+	position: absolute;
+	content: "";
+	left: 0;
+	top: 0;
+	height: 3px;
+	width: 5px;
+	background-color: $dotColor;
+	color: $dotColor;
+	animation-name: dot;
+	animation-duration: 3s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+
+@keyframes dot {
+	0% {
+		left: 0;
+	}
+
+	100% {
+		left: 100%;
+	}
+}

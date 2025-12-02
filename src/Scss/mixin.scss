@@ -1,0 +1,24 @@
+@mixin spanDecoration {
+	color: $alice-carouselBgColor;
+	padding: 8px;
+	background-color: $slidesBgColor;
+	border-radius: 2px 15px;
+
+	font: {
+		weight: bolder;
+		size: 1.2rem;
+	}
+}
+
+@mixin reset-positions {
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+@mixin D-Flex {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
