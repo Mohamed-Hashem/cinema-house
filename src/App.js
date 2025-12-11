@@ -22,40 +22,40 @@ import Series from "./Pages/Series/Series";
 import aboutMovie from "./Pages/About/aboutMovie";
 
 export default class App extends Component {
-	render() {
-		return (
-			<>
-				<ToastContainer />
-				<Navbar />
-				<ScrollToTop />
+    render() {
+        return (
+            <>
+                <ToastContainer />
+                <Navbar />
+                <ScrollToTop />
 
-				<Switch>
-					<ProtectedRoute path="/home" component={Home} />
+                <Switch>
+                    <ProtectedRoute path="/home" component={Home} />
 
-					<ProtectedRoute exact path="/movies" component={Movies} />
-					<ProtectedRoute exact path="/series" component={Series} />
-					<ProtectedRoute exact path="/actors" component={Actors} />
+                    <ProtectedRoute exact path="/movies" component={Movies} />
+                    <ProtectedRoute exact path="/series" component={Series} />
+                    <ProtectedRoute exact path="/actors" component={Actors} />
 
-					<ProtectedRoute path="/search" component={Search} />
+                    <ProtectedRoute path="/search" component={Search} />
 
-					<ProtectedRoute path="/movies/:id" component={aboutMovie} />
-					<ProtectedRoute path="/series/:id" component={aboutTv} />
-					<ProtectedRoute path="/actors/:id" component={aboutPerson} />
+                    <ProtectedRoute path="/movies/:id" component={aboutMovie} />
+                    <ProtectedRoute path="/series/:id" component={aboutTv} />
+                    <ProtectedRoute path="/actors/:id" component={aboutPerson} />
 
-					<ProtectedRoute path="/season" component={SeasonData} />
-					<ProtectedRoute path="/episode" component={Episode} />
+                    <ProtectedRoute path="/season" component={SeasonData} />
+                    <ProtectedRoute path="/episode" component={Episode} />
 
-					<CheckToken path="/login" component={Login} />
-					<CheckToken path="/register" component={Register} />
+                    <CheckToken path="/login" component={Login} />
+                    <CheckToken path="/register" component={Register} />
 
-					<Route path="/logout" component={Logout} />
+                    <Route path="/logout" component={Logout} />
 
-					<Redirect exact from="/" to="/login" />
-					<ProtectedRoute path="/*" component={NotFound} />
-				</Switch>
+                    <Redirect exact from="/" to="/login" />
+                    <ProtectedRoute path="/*" component={NotFound} />
+                </Switch>
 
-				<Footer />
-			</>
-		);
-	}
+                <Footer />
+            </>
+        );
+    }
 }

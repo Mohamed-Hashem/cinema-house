@@ -108,10 +108,7 @@ class Register extends Component {
                     className="d-flex justify-content-center align-items-center position-relative"
                     style={{ minHeight: "73vh", top: "100px" }}
                 >
-                    <div
-                        className="container text-center"
-                        style={{ width: "35%" }}
-                    >
+                    <div className="container text-center" style={{ width: "35%" }}>
                         <form onSubmit={this.sendData}>
                             <input
                                 onChange={this.handleChange}
@@ -148,9 +145,7 @@ class Register extends Component {
                                 placeholder="Age"
                             />
                             {this.state.errors.age && (
-                                <div className="alert alert-danger">
-                                    {this.state.errors.age}
-                                </div>
+                                <div className="alert alert-danger">{this.state.errors.age}</div>
                             )}
 
                             <input
@@ -161,9 +156,7 @@ class Register extends Component {
                                 placeholder="Email"
                             />
                             {this.state.errors.email && (
-                                <div className="alert alert-danger">
-                                    {this.state.errors.email}
-                                </div>
+                                <div className="alert alert-danger">{this.state.errors.email}</div>
                             )}
 
                             <input
@@ -179,14 +172,10 @@ class Register extends Component {
                                 </div>
                             )}
 
-                            <div className={this.state.status}>
-                                {this.state.errorMessage}
-                            </div>
+                            <div className={this.state.status}>{this.state.errorMessage}</div>
 
                             <button className="btn btn-info w-50 my-3">
-                                {this.state.waiting
-                                    ? "Waiting ... "
-                                    : "Register"}
+                                {this.state.waiting ? "Waiting ... " : "Register"}
                             </button>
                         </form>
                     </div>

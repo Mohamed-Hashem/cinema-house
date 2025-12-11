@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 
 export default class ScrollToTop extends Component {
-
     constructor(props) {
         super(props);
         this.state = { is_visible: false };
@@ -17,11 +16,11 @@ export default class ScrollToTop extends Component {
     toggleVisibility() {
         if (window.pageYOffset > 500) {
             this.setState({
-                is_visible: true
+                is_visible: true,
             });
         } else {
             this.setState({
-                is_visible: false
+                is_visible: false,
             });
         }
     }
@@ -29,20 +28,18 @@ export default class ScrollToTop extends Component {
     scrollToTop() {
         window.scrollTo({
             top: 0,
-            behavior: "smooth"
+            behavior: "smooth",
         });
     }
 
     render() {
         return (
             <div className="back-to-top show-back-to-top">
-                {
-                    this.state.is_visible && (
-                        <div className="top" onClick={() => this.scrollToTop()}>
-                            <i className="fas fa-arrow-circle-up"></i>
-                        </div>
-                    )
-                }
+                {this.state.is_visible && (
+                    <div className="top" onClick={() => this.scrollToTop()}>
+                        <i className="fas fa-arrow-circle-up"></i>
+                    </div>
+                )}
             </div>
         );
     }

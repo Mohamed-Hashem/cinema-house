@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { FaStar } from "react-icons/fa";
-import axios from 'axios';
+import axios from "axios";
 
 const colors = {
     orange: "#FFBA5A",
-    grey: "#a9a9a9"
-
+    grey: "#a9a9a9",
 };
 
 function SeriesRating({ rate }) {
-
     const [currentValue, setCurrentValue] = useState(null);
     const [hoverValue, setHoverValue] = useState(undefined);
     // const [feedback, setFeedback] = useState("");
@@ -22,20 +20,26 @@ function SeriesRating({ rate }) {
         setCurrentValue(value);
         console.log(value);
 
-        await axios.post(`https://api.themoviedb.org/3/tv/${rate.id}/rating?api_key=0c46ad1eb5954840ed97f5e537764be8`, { value: currentValue }).then((res) => {
-            console.log(res);
-        }).catch((err) => {
-            console.log(err);
-        });
-    }
+        await axios
+            .post(
+                `https://api.themoviedb.org/3/tv/${rate.id}/rating?api_key=0c46ad1eb5954840ed97f5e537764be8`,
+                { value: currentValue }
+            )
+            .then((res) => {
+                console.log(res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    };
 
-    const handleMouseOver = newHoverValue => {
-        setHoverValue(newHoverValue)
+    const handleMouseOver = (newHoverValue) => {
+        setHoverValue(newHoverValue);
     };
 
     const handleMouseLeave = () => {
-        setHoverValue(undefined)
-    }
+        setHoverValue(undefined);
+    };
 
     // const fetchReviews = async () => {
     //     await axios.get(`https://api.themoviedb.org/3/tv/${movie.id}/reviews?api_key=0c46ad1eb5954840ed97f5e537764be8`).then((res) => {
@@ -59,35 +63,33 @@ function SeriesRating({ rate }) {
 
     return (
         <>
-
             <div className="my-5">
                 <div className="w-100 line my-3"></div>
 
-                <div style={styles.container} >
-
+                <div style={styles.container}>
                     <div className="item  text-center my-3">
-                        <h3>Leave Rate To The Movie  </h3>
+                        <h3>Leave Rate To The Movie </h3>
                     </div>
 
                     <div style={styles.stars}>
-                        {
-                            stars.map((_, index) => {
-                                return (
-                                    <FaStar
-                                        key={index}
-                                        size={24}
-                                        onMouseOver={() => handleMouseOver(index + 1)}
-                                        onMouseLeave={handleMouseLeave}
-                                        onClick={() => handleClick(index + 1)}
-                                        color={(hoverValue || currentValue) > index ? colors.orange : colors.grey}
-                                        style={{ marginRight: 10, cursor: "pointer" }}
-                                    />
-                                )
-                            })
-                        }
+                        {stars.map((_, index) => {
+                            return (
+                                <FaStar
+                                    key={index}
+                                    size={24}
+                                    onMouseOver={() => handleMouseOver(index + 1)}
+                                    onMouseLeave={handleMouseLeave}
+                                    onClick={() => handleClick(index + 1)}
+                                    color={
+                                        (hoverValue || currentValue) > index
+                                            ? colors.orange
+                                            : colors.grey
+                                    }
+                                    style={{ marginRight: 10, cursor: "pointer" }}
+                                />
+                            );
+                        })}
                     </div>
-
-
                 </div>
 
                 {/*
@@ -118,12 +120,10 @@ function SeriesRating({ rate }) {
                     </div> : false
             } 
             */}
-
             </div>
-
         </>
     );
-};
+}
 
 const styles = {
     container: {
@@ -131,7 +131,7 @@ const styles = {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: "20px"
+        marginBottom: "20px",
     },
     stars: {
         display: "flex",
@@ -142,7 +142,7 @@ const styles = {
         borderRadius: 5,
         backgroundColor: "#1e2d55",
         color: "#fff",
-    }
+    },
 };
 
 export default SeriesRating;

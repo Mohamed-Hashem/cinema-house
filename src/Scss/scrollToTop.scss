@@ -1,4 +1,4 @@
-@import 'color.scss';
+@import "color.scss";
 
 .back-to-top .top {
     position: fixed;
@@ -14,7 +14,9 @@
     text-align: center;
     line-height: 45px;
     border-radius: 50%;
-    transition: color 1s, background-color 1s;
+    transition:
+        color 1s,
+        background-color 1s;
 
     .top:hover {
         color: $whiteColor;

@@ -23,13 +23,13 @@ import "react-toastify/dist/ReactToastify.min.css";
 import { store } from "./Redux/Store/Store.jsx";
 
 ReactDOM.render(
-	<React.StrictMode>
-		<BrowserRouter basename="/#">
-			<Provider store={store}>
-				<App />
-			</Provider>
-		</BrowserRouter>
-	</React.StrictMode>,
+    <React.StrictMode>
+        <BrowserRouter basename="/#">
+            <Provider store={store}>
+                <App />
+            </Provider>
+        </BrowserRouter>
+    </React.StrictMode>,
 
-	document.getElementById("root")
+    document.getElementById("root")
 );
