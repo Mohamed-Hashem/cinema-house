@@ -1,120 +1,106 @@
-import React, { Component } from "react";
-import Loader from "react-loader-spinner";
-import { connect } from "react-redux";
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
+import { LoadingSpinner } from "../../Components/shared";
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
 import { getAllData } from "./../../Redux/Actions/Actions";
 import Serie from "./Serie";
 
-class Series extends Component {
-    isLoading = false;
+const Series = () => {
+    const [page, setPage] = useState(1);
+    const [prevY, setPrevY] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
 
-    constructor(props) {
-        super(props);
+    const dispatch = useDispatch();
+    const history = useHistory();
+    const series = useSelector((state) => state.series);
+    const loadingRef = useRef(null);
+    const observerRef = useRef(null);
 
-        this.state = {
-            page: 1,
-            prevY: 1,
-        };
+    // Fetch series function
+    const getSeries = useCallback(
+        (pageNum) => {
+            dispatch(getAllData(pageNum, "tv"));
+        },
+        [dispatch]
+    );
 
+    // Initial fetch
+    useEffect(() => {
         window.scrollTo(0, 0);
-    }
+        getSeries(1);
+        setIsLoading(true);
+    }, [getSeries]);
 
-    getSeries(page) {
-        this.props.getAllData(page, "tv");
-    }
-
-    componentDidMount() {
-        this.getSeries(this.state.page);
-
-        this.isLoading = true;
-
-        var options = {
+    // Intersection observer for infinite scroll
+    useEffect(() => {
+        const options = {
             root: null,
             rootMargin: "0px",
             threshold: 1.0,
         };
 
-        this.observer = new IntersectionObserver(this.handleObserver.bind(this), options);
-        this.observer.observe(this.loadingRef);
-    }
+        const handleObserver = (entities) => {
+            const y = entities[0].boundingClientRect.y;
 
-    handleObserver(entities) {
-        const y = entities[0].boundingClientRect.y;
+            if (prevY > y) {
+                const nextPage = page + 1;
+                getSeries(nextPage);
+                setPage(nextPage);
+            }
+            setPrevY(y);
+        };
 
-        if (this.state.prevY > y) {
-            const curPage = this.state.page + 1;
-            this.getSeries(curPage);
-            this.setState({ page: curPage });
+        observerRef.current = new IntersectionObserver(handleObserver, options);
+
+        if (loadingRef.current) {
+            observerRef.current.observe(loadingRef.current);
         }
-        this.setState({ prevY: y });
-    }
 
-    componentWillUnmount() {
-        this.isLoading = false;
-    }
+        return () => {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+        };
+    }, [prevY, page, getSeries]);
 
-    goToSeriesAbout = (series) => {
-        window.scrollTo(0, 0);
-        this.props.history.push(`/series/${series.id}`, series);
-    };
+    // Memoized navigation handler
+    const goToSeriesAbout = useCallback(
+        (serie) => {
+            window.scrollTo(0, 0);
+            history.push(`/series/${serie.id}`, serie);
+        },
+        [history]
+    );
 
-    render() {
-        return (
-            <>
-                <section className="container tv" style={{ minHeight: "67vh" }}>
-                    {this.isLoading ? (
-                        <div className="row">
-                            {React.Children.toArray(
-                                // that handle a unique key itself
-                                this.props.series.map((serie) => {
-                                    return serie.poster_path !== null ? (
-                                        <Serie
-                                            serie={serie}
-                                            goToSeriesAbout={this.goToSeriesAbout}
-                                            height="350"
-                                        />
-                                    ) : null;
-                                })
-                            )}
-                        </div>
-                    ) : (
-                        <div className="Loader">
-                            <Loader
-                                type="Bars"
-                                color="#00BFFF"
-                                height={100}
-                                width={100}
-                                timeout={3000}
-                            />
-                        </div>
-                    )}
+    // Filter series with posters
+    const filteredSeries = useMemo(() => series.filter((serie) => serie.poster_path), [series]);
 
-                    <div
-                        ref={(loadingRef) => (this.loadingRef = loadingRef)}
-                        style={{ height: "100px", margin: "30px" }}
-                    >
-                        <span
-                            style={{ display: this.isLoading ? "block" : "none" }}
-                            className="py-2 text-center"
-                        >
-                            <Loader
-                                type="Bars"
-                                color="#00BFFF"
-                                height={80}
-                                width={80}
-                                time={1000}
-                            />
-                        </span>
-                    </div>
-                </section>
-            </>
-        );
-    }
-}
+    return (
+        <section className="container tv" style={{ minHeight: "67vh" }}>
+            {isLoading ? (
+                <div className="row">
+                    {filteredSeries.map((serie) => (
+                        <Serie
+                            key={serie.id}
+                            serie={serie}
+                            goToSeriesAbout={goToSeriesAbout}
+                            height="350"
+                        />
+                    ))}
+                </div>
+            ) : (
+                <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
+            )}
 
-const mapStateToProps = (state) => {
-    return {
-        series: state.series,
-    };
+            <div ref={loadingRef} style={{ height: "100px", margin: "30px" }}>
+                {isLoading && (
+                    <span className="py-2 text-center">
+                        <LoadingSpinner type="Bars" color="#00BFFF" height={80} width={80} />
+                    </span>
+                )}
+            </div>
+        </section>
+    );
 };
 
-export default connect(mapStateToProps, { getAllData })(Series);
+export default memo(Series);

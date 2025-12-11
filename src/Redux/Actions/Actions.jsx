@@ -14,15 +14,18 @@ import {
 
 import axios from "axios";
 
+// Environment variables for TMDB API
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+
 export const getTrending = (mediaType) => {
     const controller = new AbortController();
 
     return async (dispatch) => {
         await axios
-            .get(
-                `https://api.themoviedb.org/3/trending/${mediaType}/week?api_key=0c46ad1eb5954840ed97f5e537764be8`,
-                { signal: controller.signal }
-            )
+            .get(`${TMDB_BASE_URL}/trending/${mediaType}/week?api_key=${TMDB_API_KEY}`, {
+                signal: controller.signal,
+            })
             .then((res) => {
                 const { results } = res.data;
 
@@ -33,7 +36,7 @@ export const getTrending = (mediaType) => {
                 else dispatch({ type: GET_SERIES_TRENDING, payload: results });
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Error fetching trending data:", error);
                 dispatch({ type: GET_MOVIES_TRENDING, payload: [] });
                 dispatch({ type: GET_SERIES_TRENDING, payload: [] });
                 dispatch({ type: GET_ACTORS_TRENDING, payload: [] });
@@ -49,7 +52,7 @@ export const getAllData = (page, mediaType) => {
 
         await axios
             .get(
-                `https://api.themoviedb.org/3/trending/${mediaType}/day?api_key=0c46ad1eb5954840ed97f5e537764be8&page=${page}`,
+                `${TMDB_BASE_URL}/trending/${mediaType}/day?api_key=${TMDB_API_KEY}&page=${page}`,
                 { signal: controller.signal }
             )
             .then((res) => {
@@ -76,7 +79,7 @@ export const getAllData = (page, mediaType) => {
                 }
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Error fetching paginated data:", error);
                 dispatch({ type: GET_MOVIES_TRENDING, payload: [] });
                 dispatch({ type: GET_ACTORS_TRENDING, payload: [] });
                 dispatch({ type: GET_SERIES_TRENDING, payload: [] });
@@ -90,7 +93,7 @@ export const getMediaType_Data = (id, mediaType) => {
     return async (dispatch) => {
         await axios
             .get(
-                `https://api.themoviedb.org/3/${mediaType}/${id}?api_key=0c46ad1eb5954840ed97f5e537764be8&append_to_response=all`,
+                `${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=all`,
                 { signal: controller.signal }
             )
             .then((res) => {
@@ -98,7 +101,7 @@ export const getMediaType_Data = (id, mediaType) => {
                 dispatch({ type: MEDIA_TYPE_DETAILS, payload: data });
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Error fetching media details:", error);
                 dispatch({ type: MEDIA_TYPE_DETAILS, payload: [] });
             });
     };
@@ -109,21 +112,24 @@ export const getMediaType_Iframe = (id, mediaType) => {
 
     return async (dispatch) => {
         await axios
-            .get(
-                `https://api.themoviedb.org/3/${mediaType}/${id}/videos?api_key=0c46ad1eb5954840ed97f5e537764be8`,
-                { signal: controller.signal }
-            )
+            .get(`${TMDB_BASE_URL}/${mediaType}/${id}/videos?api_key=${TMDB_API_KEY}`, {
+                signal: controller.signal,
+            })
             .then((res) => {
                 let { data } = res;
 
-                if (data.results[0].key) data = data.results[0].key;
-                else data = data.results[0];
+                // Safely check if results array has items
+                if (data.results && data.results.length > 0 && data.results[0]?.key) {
+                    data = data.results[0].key;
+                } else {
+                    data = null;
+                }
 
                 dispatch({ type: MEDIA_TYPE_IFRAME, payload: data });
             })
             .catch((error) => {
-                console.log("error = ", error);
-                dispatch({ type: MEDIA_TYPE_IFRAME, payload: [] });
+                console.error("Error fetching video data:", error);
+                dispatch({ type: MEDIA_TYPE_IFRAME, payload: null });
             });
     };
 };
@@ -131,12 +137,11 @@ export const getMediaType_Iframe = (id, mediaType) => {
 export const fetchPosters = (mediaType, id, dataType) => {
     const controller = new AbortController();
 
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         await axios
-            .get(
-                `https://api.themoviedb.org/3/${mediaType}/${id}/${dataType}?api_key=0c46ad1eb5954840ed97f5e537764be8`,
-                { signal: controller.signal }
-            )
+            .get(`${TMDB_BASE_URL}/${mediaType}/${id}/${dataType}?api_key=${TMDB_API_KEY}`, {
+                signal: controller.signal,
+            })
             .then((res) => {
                 const { backdrops } = res.data;
 
@@ -145,7 +150,7 @@ export const fetchPosters = (mediaType, id, dataType) => {
                 else dispatch({ type: FETCH_MOVIE_POSTERS, payload: [] });
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Error fetching posters:", error);
                 dispatch({ type: FETCH_MOVIE_POSTERS, payload: [] });
             });
     };
@@ -154,12 +159,11 @@ export const fetchPosters = (mediaType, id, dataType) => {
 export const fetchActors = (mediaType, id, dataType) => {
     const controller = new AbortController();
 
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         await axios
-            .get(
-                `https://api.themoviedb.org/3/${mediaType}/${id}/${dataType}?api_key=0c46ad1eb5954840ed97f5e537764be8`,
-                { signal: controller.signal }
-            )
+            .get(`${TMDB_BASE_URL}/${mediaType}/${id}/${dataType}?api_key=${TMDB_API_KEY}`, {
+                signal: controller.signal,
+            })
             .then((res) => {
                 const { cast } = res.data;
 
@@ -167,7 +171,7 @@ export const fetchActors = (mediaType, id, dataType) => {
                 else dispatch({ type: FETCH_MOVIE_ACTORS, payload: [] });
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Error fetching actors:", error);
                 dispatch({ type: FETCH_MOVIE_ACTORS, payload: [] });
             });
     };
@@ -176,12 +180,11 @@ export const fetchActors = (mediaType, id, dataType) => {
 export const fetchSimilar = (mediaType, id, dataType) => {
     const controller = new AbortController();
 
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         await axios
-            .get(
-                `https://api.themoviedb.org/3/${mediaType}/${id}/${dataType}?api_key=0c46ad1eb5954840ed97f5e537764be8`,
-                { signal: controller.signal }
-            )
+            .get(`${TMDB_BASE_URL}/${mediaType}/${id}/${dataType}?api_key=${TMDB_API_KEY}`, {
+                signal: controller.signal,
+            })
             .then((res) => {
                 const { results } = res.data;
 
@@ -189,7 +192,7 @@ export const fetchSimilar = (mediaType, id, dataType) => {
                 else dispatch({ type: FETCH_MOVIE_SIMILAR, payload: [] });
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Error fetching similar items:", error);
                 dispatch({ type: FETCH_MOVIE_SIMILAR, payload: [] });
             });
     };
@@ -198,12 +201,11 @@ export const fetchSimilar = (mediaType, id, dataType) => {
 export const fetchRecommendations = (mediaType, id, dataType) => {
     const controller = new AbortController();
 
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         await axios
-            .get(
-                `https://api.themoviedb.org/3/${mediaType}/${id}/${dataType}?api_key=0c46ad1eb5954840ed97f5e537764be8`,
-                { signal: controller.signal }
-            )
+            .get(`${TMDB_BASE_URL}/${mediaType}/${id}/${dataType}?api_key=${TMDB_API_KEY}`, {
+                signal: controller.signal,
+            })
             .then((res) => {
                 const { results } = res.data;
 
@@ -219,14 +221,14 @@ export const fetchRecommendations = (mediaType, id, dataType) => {
                     });
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Error fetching recommendations:", error);
                 dispatch({ type: FETCH_MOVIE_RECOMMENDATIONS, payload: [] });
             });
     };
 };
 
 export const formData = (User, status) => {
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         const controller = new AbortController();
 
         // Map status to endpoint
@@ -246,7 +248,7 @@ export const formData = (User, status) => {
                 }
             })
             .catch((error) => {
-                console.log("error = ", error);
+                console.error("Authentication error:", error);
 
                 dispatch({ type: REGISTER, payload: "Network Error" });
                 dispatch({ type: LOGIN, payload: "Network Error" });

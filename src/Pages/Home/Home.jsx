@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import Loader from "react-loader-spinner";
+import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
+import { LoadingSpinner } from "../../Components/shared";
 import { useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getTrending } from "./../../Redux/Actions/Actions";
@@ -7,15 +7,29 @@ import Movie from "../Movies/Movie";
 import Serie from "../Series/Serie";
 import Actor from "../Actors/Actor";
 
+// Memoized section header component
+const SectionHeader = memo(({ title, subtitle }) => (
+    <div className="col-md-4 col-sm-12 d-flex justify-content-center align-items-center">
+        <div className="item">
+            <div className="w-25 line mb-3"></div>
+            <h1 className="mr-4">{title}</h1>
+            <p className="secondFontColor">{subtitle}</p>
+            <div className="w-100 line mb-4"></div>
+        </div>
+    </div>
+));
+
+SectionHeader.displayName = "SectionHeader";
+
 const Home = () => {
     const history = useHistory();
     const [isLoading, setIsLoading] = useState(false);
 
-    const dispatch = useDispatch(); // to Dispatch date from store
+    const dispatch = useDispatch();
 
-    let movies = useSelector((state) => state.movies);
-    let series = useSelector((state) => state.series);
-    let actors = useSelector((state) => state.actors);
+    const movies = useSelector((state) => state.movies);
+    const series = useSelector((state) => state.series);
+    const actors = useSelector((state) => state.actors);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -32,148 +46,119 @@ const Home = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const goToMovieAbout = (movie) => {
-        window.scrollTo(0, 0);
-        history.push(`/movies/${movie.id}`, movie);
-    };
+    // Memoized navigation handlers
+    const goToMovieAbout = useCallback(
+        (movie) => {
+            window.scrollTo(0, 0);
+            history.push(`/movies/${movie.id}`, movie);
+        },
+        [history]
+    );
 
-    const goToSeriesAbout = (series) => {
-        window.scrollTo(0, 0);
-        history.push(`/series/${series.id}`, series);
-    };
+    const goToSeriesAbout = useCallback(
+        (series) => {
+            window.scrollTo(0, 0);
+            history.push(`/series/${series.id}`, series);
+        },
+        [history]
+    );
 
-    const goToActorsAbout = (actor) => {
-        window.scrollTo(0, 0);
-        history.push(`/actors/${actor.id}`, actor);
-    };
+    const goToActorsAbout = useCallback(
+        (actor) => {
+            window.scrollTo(0, 0);
+            history.push(`/actors/${actor.id}`, actor);
+        },
+        [history]
+    );
+
+    // Memoized filtered data (only items with posters/profiles)
+    const filteredMovies = useMemo(
+        () => movies.slice(0, 10).filter((movie) => movie.poster_path),
+        [movies]
+    );
+
+    const filteredSeries = useMemo(
+        () => series.slice(0, 10).filter((serie) => serie.poster_path),
+        [series]
+    );
+
+    const filteredActors = useMemo(
+        () => actors.slice(0, 10).filter((actor) => actor.profile_path),
+        [actors]
+    );
 
     return (
-        <>
-            <div className="container home" style={{ minHeight: "71vh" }}>
-                {/*////////////////////////////////  Movies    //////////////////////////////////////*/}
-
-                {isLoading ? (
-                    <div className="row">
-                        <div className="col-md-4 col-sm-12 d-flex justify-content-center align-items-center">
-                            <div className="item">
-                                <div className="w-25 line mb-3"></div>
-
-                                <h1 className="mr-4">Trending Movies to Watch now</h1>
-                                <p className="secondFontColor">Most Watched Movies</p>
-
-                                <div className="w-100 line mb-4"></div>
-                            </div>
-                        </div>
-                        {React.Children.toArray(
-                            // that handle a unique key itself
-                            movies.slice(0, 10).map((movie) => {
-                                return movie.poster_path ? (
-                                    <Movie
-                                        movie={movie}
-                                        goToMovieAbout={goToMovieAbout}
-                                        height="250"
-                                    />
-                                ) : null;
-                            })
-                        )}
-                    </div>
-                ) : (
-                    <div className="Loader">
-                        <Loader
-                            type="Bars"
-                            color="#00BFFF"
-                            height={100}
-                            width={100}
-                            timeout={3000}
+        <div className="container home" style={{ minHeight: "71vh" }}>
+            {/* Movies Section */}
+            {isLoading && filteredMovies.length > 0 ? (
+                <div className="row">
+                    <SectionHeader
+                        title="Trending Movies to Watch now"
+                        subtitle="Most Watched Movies"
+                    />
+                    {filteredMovies.map((movie) => (
+                        <Movie
+                            key={movie.id}
+                            movie={movie}
+                            goToMovieAbout={goToMovieAbout}
+                            height="250"
                         />
-                    </div>
-                )}
+                    ))}
+                </div>
+            ) : !isLoading ? (
+                <LoadingSpinner />
+            ) : null}
 
-                {/*////////////////////////////////  TV    //////////////////////////////////////*/}
-
-                {isLoading ? (
-                    <div className="row my-3">
-                        <div className="col-md-4 col-sm-12  d-flex justify-content-center align-items-center">
-                            <div className="item">
-                                <div className="w-25 line mb-3"></div>
-
-                                <h1 className="mr-5">
-                                    Trending <br />
-                                    Series to Watch now
-                                </h1>
-                                <p className="secondFontColor">Most Watched Series </p>
-
-                                <div className="w-100 line mb-4"></div>
-                            </div>
-                        </div>
-                        {React.Children.toArray(
-                            // that handle a unique key itself
-                            series.slice(0, 10).map((serie) => {
-                                return serie.poster_path ? (
-                                    <Serie
-                                        serie={serie}
-                                        goToSeriesAbout={goToSeriesAbout}
-                                        height="250"
-                                    />
-                                ) : null;
-                            })
-                        )}
-                    </div>
-                ) : (
-                    <div className="Loader">
-                        <Loader
-                            type="Bars"
-                            color="#00BFFF"
-                            height={100}
-                            width={100}
-                            timeout={3000}
+            {/* TV Series Section */}
+            {isLoading && filteredSeries.length > 0 ? (
+                <div className="row my-3">
+                    <SectionHeader
+                        title={
+                            <>
+                                Trending <br />
+                                Series to Watch now
+                            </>
+                        }
+                        subtitle="Most Watched Series"
+                    />
+                    {filteredSeries.map((serie) => (
+                        <Serie
+                            key={serie.id}
+                            serie={serie}
+                            goToSeriesAbout={goToSeriesAbout}
+                            height="250"
                         />
-                    </div>
-                )}
+                    ))}
+                </div>
+            ) : !isLoading ? (
+                <LoadingSpinner />
+            ) : null}
 
-                {/*////////////////////////////////  People   //////////////////////////////////////*/}
-
-                {isLoading ? (
-                    <div className="row mt-3">
-                        <div className="col-md-4 col-sm-12  d-flex justify-content-center align-items-center">
-                            <div className="item">
-                                <div className="w-25 line mb-3"></div>
-
-                                <h1 className="mr-5">
-                                    Trending <br /> Actors and Actress
-                                </h1>
-                                <p className="secondFontColor">Most Popular Actors and Actress</p>
-
-                                <div className="w-100 line mb-4"></div>
-                            </div>
-                        </div>
-                        {React.Children.toArray(
-                            // that handle a unique key itself
-                            actors.slice(0, 10).map((actor) => {
-                                return actor.profile_path ? (
-                                    <Actor
-                                        actor={actor}
-                                        goToActorsAbout={goToActorsAbout}
-                                        height="250"
-                                    />
-                                ) : null;
-                            })
-                        )}
-                    </div>
-                ) : (
-                    <div className="Loader">
-                        <Loader
-                            type="Bars"
-                            color="#00BFFF"
-                            height={100}
-                            width={100}
-                            timeout={3000}
+            {/* Actors Section */}
+            {isLoading && filteredActors.length > 0 ? (
+                <div className="row mt-3">
+                    <SectionHeader
+                        title={
+                            <>
+                                Trending <br /> Actors and Actress
+                            </>
+                        }
+                        subtitle="Most Popular Actors and Actress"
+                    />
+                    {filteredActors.map((actor) => (
+                        <Actor
+                            key={actor.id}
+                            actor={actor}
+                            goToActorsAbout={goToActorsAbout}
+                            height="250"
                         />
-                    </div>
-                )}
-            </div>
-        </>
+                    ))}
+                </div>
+            ) : !isLoading ? (
+                <LoadingSpinner />
+            ) : null}
+        </div>
     );
 };
 
-export default Home;
+export default memo(Home);

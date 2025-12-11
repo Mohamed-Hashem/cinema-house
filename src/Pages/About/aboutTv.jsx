@@ -1,17 +1,20 @@
 import axios from "axios";
 import React, { Component } from "react";
-import Loader from "react-loader-spinner";
+import { LoadingSpinner } from "../../Components/shared";
 import TvSimilar from "../../Components/Recommendations/TvSimilar";
 import TvActors from "./../../Components/Actors/TvActors";
 import TvRecommendations from "./../../Components/Recommendations/TvRecommendations";
 import TvShow from "./../../Components/ShowImages/TvShow";
 import Seasons from "./../../Components/Tv Seasons/Seasons";
 
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+
 export default class aboutTv extends Component {
     isLoading = false;
+    _isMounted = false;
 
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             iFrame: null,
             tvShowDetails: null,
@@ -20,78 +23,119 @@ export default class aboutTv extends Component {
         window.scrollTo(0, 0);
     }
 
+    getSeriesData = () => {
+        // Try to get from URL params first (most reliable)
+        const id = this.props.match?.params?.id;
+        if (id && !isNaN(id)) {
+            // Check if we have full data in location state
+            if (this.props.location.state?.id) {
+                return this.props.location.state;
+            }
+            // Fallback to localStorage
+            const stored = localStorage.getItem("series");
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.id === parseInt(id, 10)) {
+                        return parsed;
+                    }
+                } catch (e) {
+                    // ignore parse error
+                }
+            }
+            // Return just the ID to fetch data
+            return { id: parseInt(id, 10) };
+        }
+        return null;
+    };
+
     TvShowDetails = async (series) => {
+        if (!series?.id) return;
+
         let currentSeries;
-        if (this.props.location.pathname !== undefined) {
+        if (this.props.location.state?.id) {
             currentSeries = series;
             localStorage.removeItem("series");
             localStorage.setItem("series", JSON.stringify(currentSeries));
         } else {
-            currentSeries = JSON.parse(localStorage.getItem("series"));
+            currentSeries = series;
         }
-        this.setState({ series: currentSeries });
+        if (this._isMounted) {
+            this.setState({ series: currentSeries });
+        }
 
         await axios
             .get(
-                `https://api.themoviedb.org/3/tv/${series.id}?api_key=0c46ad1eb5954840ed97f5e537764be8&append_to_response=all`
+                `https://api.themoviedb.org/3/tv/${series.id}?api_key=${TMDB_API_KEY}&append_to_response=all`
             )
             .then((res) => {
-                this.setState({ tvShowDetails: res.data });
-                this.isLoading = true;
+                if (this._isMounted) {
+                    this.setState({ tvShowDetails: res.data });
+                    this.isLoading = true;
+                }
             })
             .catch((err) => {
-                console.log(err);
-
-                this.setState({ tvShowDetails: null });
+                console.error("Error fetching TV show details:", err);
+                if (this._isMounted) {
+                    this.setState({ tvShowDetails: null });
+                }
             });
     };
 
     IFrame = async (item) => {
+        if (!item?.id) return;
+
         await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${item.id}/videos?api_key=0c46ad1eb5954840ed97f5e537764be8&`
-            )
+            .get(`https://api.themoviedb.org/3/tv/${item.id}/videos?api_key=${TMDB_API_KEY}&`)
             .then((res) => {
-                this.setState({ iFrame: res.data.results[0].key });
-                this.isLoading = true;
+                if (this._isMounted) {
+                    this.setState({ iFrame: res.data.results[0]?.key || null });
+                    this.isLoading = true;
+                }
             })
             .catch((err) => {
-                console.log(err);
-                this.setState({ iFrame: null });
+                console.error("Error fetching video data:", err);
+                if (this._isMounted) {
+                    this.setState({ iFrame: null });
+                }
             });
     };
 
     componentDidMount() {
+        this._isMounted = true;
         window.scrollTo(0, 0);
 
-        this.TvShowDetails(this.props.location.state);
-
-        this.IFrame(this.props.location.state);
+        const seriesData = this.getSeriesData();
+        if (seriesData) {
+            this.TvShowDetails(seriesData);
+            this.IFrame(seriesData);
+        }
     }
 
     componentWillUnmount() {
+        this._isMounted = false;
         this.isLoading = false;
-        clearTimeout();
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.location.state !== prevProps.location.state) {
-            this.setState({ value: this.props.location.state });
-
-            this.TvShowDetails(this.props.location.state);
-
-            this.IFrame(this.props.location.state);
+        // Check if URL parameter changed
+        if (this.props.match?.params?.id !== prevProps.match?.params?.id) {
+            const seriesData = this.getSeriesData();
+            if (seriesData) {
+                this.TvShowDetails(seriesData);
+                this.IFrame(seriesData);
+            }
         }
     }
 
     goToTvAbout = (item) => {
         window.scrollTo(0, 0);
-        this.props.history.push(`/aboutTv/${item.id}`, item);
+        this.props.history.push(`/series/${item.id}`, item);
     };
 
     goToPersonAbout = (actor) => {
         window.scrollTo(0, 0);
-        this.props.history.push(`/aboutPerson/${actor.id}`, actor);
+        this.props.history.push(`/actors/${actor.id}`, actor);
     };
 
     goToSeason = (season) => {
@@ -99,19 +143,26 @@ export default class aboutTv extends Component {
 
         this.props.history.push({
             pathname: `/season/${season.season_number}`,
-            state: this.props.location.state,
+            state: { ...this.state.series, season_number: season.season_number },
         });
     };
 
     getDownload = async (query) => {
-        await axios
-            .get(`https://yts.mx/api/v2/list_movies.json?page=1&query_term=${query}`)
-            .then((res) => {
+        if (!this._isMounted) return;
+        try {
+            const res = await axios.get(
+                `https://yts.mx/api/v2/list_movies.json?page=1&query_term=${encodeURIComponent(query)}`
+            );
+            if (res.data?.data?.movies?.[0]?.torrents?.[0]?.url) {
                 window.location = res.data.data.movies[0].torrents[0].url;
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+            } else {
+                console.warn("No torrents found for:", query);
+                alert("No torrents found for this title.");
+            }
+        } catch (err) {
+            console.error("Torrent search error:", err.message);
+            alert("Could not connect to torrent service. The service may be unavailable.");
+        }
     };
 
     render() {
@@ -322,15 +373,7 @@ export default class aboutTv extends Component {
                                 ) : null}
                             </div>
                         ) : (
-                            <div className="Loader">
-                                <Loader
-                                    type="Bars"
-                                    color="#00BFFF"
-                                    height={100}
-                                    width={100}
-                                    timeout={3000}
-                                />
-                            </div>
+                            <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
                         )}
 
                         <TvShow poster={this.state.tvShowDetails} />

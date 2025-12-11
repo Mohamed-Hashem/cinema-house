@@ -1,40 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
 const PersonTvShow = ({ series, goToTvAbout }) => {
     const [credits, setCredits] = useState(null);
     const [loading, setLoading] = useState(false);
+    const isMountedRef = useRef(true);
 
-    const fetchImages = async () => {
-        if (!series?.id) return;
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/person/${series.id}/tv_credits?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((res) => {
-                if (res.data.cast.length > 0) {
-                    setLoading(true);
-                    setCredits(res.data.cast);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
+    const fetchImages = useCallback(async (seriesId) => {
+        if (!seriesId) return;
+        try {
+            const res = await axios.get(
+                `https://api.themoviedb.org/3/person/${seriesId}/tv_credits?api_key=${TMDB_API_KEY}`
+            );
+            if (isMountedRef.current && res.data.cast.length > 0) {
+                setLoading(true);
+                setCredits(res.data.cast);
+            }
+        } catch (err) {
+            console.error("Error fetching person TV credits:", err);
+            if (isMountedRef.current) {
                 setCredits([]);
-            });
-    };
+            }
+        }
+    }, []);
 
     useEffect(() => {
-        fetchImages();
+        isMountedRef.current = true;
+        fetchImages(series?.id);
 
         return () => {
-            setLoading(false);
-            setCredits([]);
+            isMountedRef.current = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [series?.id]);
+    }, [series?.id, fetchImages]);
 
     // Return null if series is not defined
     if (!series?.id) return null;
@@ -83,7 +85,7 @@ const PersonTvShow = ({ series, goToTvAbout }) => {
         },
     };
 
-    return loading ? (
+    return loading && credits?.length > 0 ? (
         <>
             <div className="w-100 line my-5"></div>
 

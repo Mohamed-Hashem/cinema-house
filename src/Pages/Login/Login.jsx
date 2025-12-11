@@ -1,11 +1,12 @@
 import React, { Component } from "react";
-import SolidNavbar from "./../../Components/Solid Navbar/SolidNavbar";
 import * as Joi from "joi-browser";
 import { toast } from "react-toastify";
 import { formData } from "../../Redux/Actions/Actions";
 import { connect } from "react-redux";
 
 class Login extends Component {
+    _isMounted = false;
+
     constructor(props) {
         super(props);
 
@@ -26,6 +27,10 @@ class Login extends Component {
             email: Joi.string().email().required(),
             password: Joi.string().min(6).required(),
         };
+    }
+
+    componentDidMount() {
+        this._isMounted = true;
     }
 
     handleChange = (e) => {
@@ -61,6 +66,8 @@ class Login extends Component {
         else if (errors === null) {
             await this.props.formData(this.User, "signin");
 
+            if (!this._isMounted) return;
+
             if (this.props.LoginData.message === "success") {
                 toast.success("Created Successfully");
 
@@ -81,61 +88,57 @@ class Login extends Component {
                 });
             }
         }
-        this.setState({ waiting: false });
+        if (this._isMounted) {
+            this.setState({ waiting: false });
+        }
     };
 
     componentWillUnmount() {
-        this.setState({ waiting: false });
+        this._isMounted = false;
     }
 
     render() {
         return (
-            <>
-                <SolidNavbar />
+            <section
+                className="d-flex align-items-center justify-content-center"
+                style={{ minHeight: "100vh", paddingTop: "100px" }}
+            >
+                <div className="container text-center" style={{ width: "35%" }}>
+                    <form onSubmit={this.sendData}>
+                        <input
+                            onChange={this.handleChange}
+                            type="email"
+                            name="email"
+                            className="form-control my-3"
+                            placeholder="Email"
+                            autoFocus
+                            autoComplete="email"
+                        />
+                        {this.state.errors.email && (
+                            <div className="alert alert-danger">{this.state.errors.email}</div>
+                        )}
 
-                <section
-                    className="d-flex align-items-center justify-content-center"
-                    style={{ minHeight: "73vh", top: "80px" }}
-                >
-                    <div className="container text-center" style={{ width: "35%" }}>
-                        <form onSubmit={this.sendData}>
-                            <input
-                                onChange={this.handleChange}
-                                type="email"
-                                name="email"
-                                className="form-control my-3"
-                                placeholder="Email"
-                                autoFocus
-                                autoComplete="email"
-                            />
-                            {this.state.errors.email && (
-                                <div className="alert alert-danger">{this.state.errors.email}</div>
-                            )}
+                        <input
+                            onChange={this.handleChange}
+                            type="password"
+                            name="password"
+                            className="form-control my-3"
+                            placeholder="Password"
+                            autoComplete="current-password"
+                        />
 
-                            <input
-                                onChange={this.handleChange}
-                                type="password"
-                                name="password"
-                                className="form-control my-3"
-                                placeholder="Password"
-                                autoComplete="current-password"
-                            />
+                        {this.state.errors.password && (
+                            <div className="alert alert-danger">{this.state.errors.password}</div>
+                        )}
 
-                            {this.state.errors.password && (
-                                <div className="alert alert-danger">
-                                    {this.state.errors.password}
-                                </div>
-                            )}
+                        <div className={this.state.status}>{this.state.errorMessage}</div>
 
-                            <div className={this.state.status}>{this.state.errorMessage}</div>
-
-                            <button className="btn btn-info w-50 my-3">
-                                {this.state.waiting ? "Waiting ... " : "Login"}
-                            </button>
-                        </form>
-                    </div>
-                </section>
-            </>
+                        <button className="btn btn-info w-50 my-3">
+                            {this.state.waiting ? "Waiting ... " : "Login"}
+                        </button>
+                    </form>
+                </div>
+            </section>
         );
     }
 }

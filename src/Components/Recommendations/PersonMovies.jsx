@@ -1,41 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
-import Loader from "react-loader-spinner";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
 const PersonMovies = ({ movie, goToMovieAbout }) => {
     const [credits, setCredits] = useState(null);
     const [loading, setLoading] = useState(false);
+    const isMountedRef = useRef(true);
 
-    const fetchImages = async () => {
-        if (!movie?.id) return;
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/person/${movie.id}/movie_credits?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((res) => {
-                if (res.data.cast.length > 0) {
-                    setLoading(true);
-                    setCredits(res.data.cast);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
+    const fetchImages = useCallback(async (movieId) => {
+        if (!movieId) return;
+        try {
+            const res = await axios.get(
+                `https://api.themoviedb.org/3/person/${movieId}/movie_credits?api_key=${TMDB_API_KEY}`
+            );
+            if (isMountedRef.current && res.data.cast.length > 0) {
+                setLoading(true);
+                setCredits(res.data.cast);
+            }
+        } catch (err) {
+            console.error("Error fetching person movies:", err);
+            if (isMountedRef.current) {
                 setCredits([]);
-            });
-    };
+            }
+        }
+    }, []);
 
     useEffect(() => {
-        fetchImages();
+        isMountedRef.current = true;
+        fetchImages(movie?.id);
 
         return () => {
-            setLoading(false);
-            setCredits([]);
+            isMountedRef.current = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [movie?.id]);
+    }, [movie?.id, fetchImages]);
 
     // Return null if movie is not defined
     if (!movie?.id) return null;
@@ -85,7 +86,7 @@ const PersonMovies = ({ movie, goToMovieAbout }) => {
         },
     };
 
-    return loading ? (
+    return loading && credits?.length > 0 ? (
         <>
             <div className="w-100 line my-5"></div>
 
@@ -106,11 +107,7 @@ const PersonMovies = ({ movie, goToMovieAbout }) => {
                 items={items}
             />
         </>
-    ) : (
-        <div className="Loader">
-            <Loader type="Bars" color="#00BFFF" height={100} width={100} timeout={3000} />
-        </div>
-    );
+    ) : null;
 };
 
 export default PersonMovies;

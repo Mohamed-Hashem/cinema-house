@@ -1,42 +1,37 @@
-import React, { Component } from "react";
+import React, { memo, useCallback } from "react";
 
-export default class Actor extends Component {
-    render() {
-        const { actor, goToActorsAbout, height } = this.props;
+const PLACEHOLDER_IMAGE = "https://via.placeholder.com/468x700/1E2D55?Text=No+Image";
 
-        let style = null;
+const Actor = memo(({ actor, goToActorsAbout, height = "250" }) => {
+    const style = height === "350" ? "col-xl-3 col-lg-4 col-md-6" : "col-xl-2 col-lg-3 col-md-4";
 
-        if (height === "350") style = "col-xl-3 col-lg-4 col-md-6 ";
-        else style = "col-xl-2 col-lg-3 col-md-4 ";
+    const handleClick = useCallback(() => goToActorsAbout(actor), [goToActorsAbout, actor]);
 
-        return (
-            <>
-                <div
-                    className={`item ${style} col-sm-6 my-2 card card-body`}
-                    onClick={() => goToActorsAbout(actor)}
-                >
-                    <div className="text-center position-relative mb-2">
-                        <div className="captionLayer overflow-hidden mb-2">
-                            <img
-                                src={
-                                    actor.profile_path !== null
-                                        ? `https://image.tmdb.org/t/p/original/${actor.profile_path}`
-                                        : "https://via.placeholder.com/468x700/1E2D55 ?Text=Digital.com"
-                                }
-                                width="100%"
-                                height={height}
-                                alt={actor.title !== "undefined" ? actor.title : actor.name}
-                                title={actor.title === "undefined" ? actor.name : actor.title}
-                            />
-                            <div className="item-layer position-absolute w-100 h-100"></div>
-                        </div>
+    const imageSrc = actor.profile_path
+        ? `https://image.tmdb.org/t/p/w500/${actor.profile_path}`
+        : PLACEHOLDER_IMAGE;
 
-                        <b>
-                            {actor.title} {actor.name}
-                        </b>
-                    </div>
+    return (
+        <div className={`item ${style} col-sm-6 my-2 card card-body`} onClick={handleClick}>
+            <div className="text-center position-relative mb-2">
+                <div className="captionLayer overflow-hidden mb-2">
+                    <img
+                        src={imageSrc}
+                        width="100%"
+                        height={height}
+                        alt={actor.name || actor.title}
+                        title={actor.name || actor.title}
+                        loading="lazy"
+                    />
+                    <div className="item-layer position-absolute w-100 h-100"></div>
                 </div>
-            </>
-        );
-    }
-}
+
+                <b>{actor.name || actor.title}</b>
+            </div>
+        </div>
+    );
+});
+
+Actor.displayName = "Actor";
+
+export default Actor;

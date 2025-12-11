@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { formData } from "../../Redux/Actions/Actions";
-import SolidNavbar from "./../../Components/Solid Navbar/SolidNavbar";
 import * as Joi from "joi-browser";
 import { toast } from "react-toastify";
 
 class Register extends Component {
+    _isMounted = false;
+
     constructor(props) {
         super(props);
 
@@ -32,6 +33,10 @@ class Register extends Component {
             password: Joi.string().min(6).required(),
             age: Joi.number().min(18).required(),
         };
+    }
+
+    componentDidMount() {
+        this._isMounted = true;
     }
 
     handleChange = (e) => {
@@ -67,6 +72,8 @@ class Register extends Component {
         else if (errors === null) {
             await this.props.formData(this.User, "signup");
 
+            if (!this._isMounted) return;
+
             if (this.props.errorMessage === "success") {
                 toast.success("Created Successfully");
 
@@ -92,95 +99,87 @@ class Register extends Component {
             }
         }
 
-        this.setState({ waiting: false });
+        if (this._isMounted) {
+            this.setState({ waiting: false });
+        }
     };
 
     componentWillUnmount() {
-        this.setState({ waiting: false });
+        this._isMounted = false;
     }
 
     render() {
         return (
-            <>
-                <SolidNavbar />
+            <section
+                className="d-flex justify-content-center align-items-center"
+                style={{ minHeight: "100vh", paddingTop: "100px" }}
+            >
+                <div className="container text-center" style={{ width: "35%" }}>
+                    <form onSubmit={this.sendData}>
+                        <input
+                            onChange={this.handleChange}
+                            type="text"
+                            name="first_name"
+                            className="form-control my-3"
+                            placeholder="First Name"
+                            autoFocus
+                        />
+                        {this.state.errors.first_name && (
+                            <div className="alert alert-danger">{this.state.errors.first_name}</div>
+                        )}
 
-                <section
-                    className="d-flex justify-content-center align-items-center position-relative"
-                    style={{ minHeight: "73vh", top: "100px" }}
-                >
-                    <div className="container text-center" style={{ width: "35%" }}>
-                        <form onSubmit={this.sendData}>
-                            <input
-                                onChange={this.handleChange}
-                                type="text"
-                                name="first_name"
-                                className="form-control my-3"
-                                placeholder="First Name"
-                                autoFocus
-                            />
-                            {this.state.errors.first_name && (
-                                <div className="alert alert-danger">
-                                    {this.state.errors.first_name}
-                                </div>
-                            )}
+                        <input
+                            onChange={this.handleChange}
+                            type="text"
+                            name="last_name"
+                            className="form-control my-3"
+                            placeholder="Last Name"
+                        />
+                        {this.state.errors.last_name && (
+                            <div className="alert alert-danger">{this.state.errors.last_name}</div>
+                        )}
 
-                            <input
-                                onChange={this.handleChange}
-                                type="text"
-                                name="last_name"
-                                className="form-control my-3"
-                                placeholder="Last Name"
-                            />
-                            {this.state.errors.last_name && (
-                                <div className="alert alert-danger">
-                                    {this.state.errors.last_name}
-                                </div>
-                            )}
+                        <input
+                            onChange={this.handleChange}
+                            type="number"
+                            name="age"
+                            className="form-control my-3"
+                            placeholder="Age"
+                        />
+                        {this.state.errors.age && (
+                            <div className="alert alert-danger">{this.state.errors.age}</div>
+                        )}
 
-                            <input
-                                onChange={this.handleChange}
-                                type="number"
-                                name="age"
-                                className="form-control my-3"
-                                placeholder="Age"
-                            />
-                            {this.state.errors.age && (
-                                <div className="alert alert-danger">{this.state.errors.age}</div>
-                            )}
+                        <input
+                            onChange={this.handleChange}
+                            type="email"
+                            name="email"
+                            className="form-control my-3"
+                            placeholder="Email"
+                        />
+                        {this.state.errors.email && (
+                            <div className="alert alert-danger">{this.state.errors.email}</div>
+                        )}
 
-                            <input
-                                onChange={this.handleChange}
-                                type="email"
-                                name="email"
-                                className="form-control my-3"
-                                placeholder="Email"
-                            />
-                            {this.state.errors.email && (
-                                <div className="alert alert-danger">{this.state.errors.email}</div>
-                            )}
+                        <input
+                            onChange={this.handleChange}
+                            type="password"
+                            name="password"
+                            className="form-control my-3"
+                            placeholder="Password"
+                        />
+                        {this.state.errors.password && (
+                            <div className="alert alert-danger">{this.state.errors.password}</div>
+                        )}
 
-                            <input
-                                onChange={this.handleChange}
-                                type="password"
-                                name="password"
-                                className="form-control my-3"
-                                placeholder="Password"
-                            />
-                            {this.state.errors.password && (
-                                <div className="alert alert-danger">
-                                    {this.state.errors.password}
-                                </div>
-                            )}
+                        <div className={this.state.status}>{this.state.errorMessage}</div>
 
-                            <div className={this.state.status}>{this.state.errorMessage}</div>
-
-                            <button className="btn btn-info w-50 my-3">
-                                {this.state.waiting ? "Waiting ... " : "Register"}
-                            </button>
-                        </form>
-                    </div>
-                </section>
-            </>
+                        <button className="btn btn-info w-50 my-3">
+                            {this.state.waiting ? "Waiting ... " : "Register"}
+                        </button>
+                    </form>
+                </div>
+            </section>
         );
     }
 }

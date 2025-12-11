@@ -71,7 +71,7 @@ const MovieRecommendations = ({ movie, goToMovieAbout }) => {
         },
     };
 
-    return loading ? (
+    return loading && recommendations.length > 0 ? (
         <>
             <div className="w-100 line my-5"></div>
             <div className="item text-center my-3">

@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
-import Loader from "react-loader-spinner";
+import { LoadingSpinner } from "../../Components/shared";
 import MovieSimilar from "../../Components/Recommendations/MovieSimilar";
 import MovieActors from "./../../Components/Actors/MovieActors";
 import MovieRecommendations from "./../../Components/Recommendations/MovieRecommendations";
@@ -10,6 +10,7 @@ import { getMediaType_Iframe, getMediaType_Data } from "../../Redux/Actions/Acti
 
 class aboutMovie extends Component {
     isLoading = false;
+    _isMounted = false;
 
     constructor(props) {
         super(props);
@@ -17,32 +18,51 @@ class aboutMovie extends Component {
     }
 
     MoviesDetails = (id) => {
-        this.props.getMediaType_Data(id, "movie");
+        if (id) {
+            this.props.getMediaType_Data(id, "movie");
+        }
     };
 
     IFrame = (id) => {
-        this.props.getMediaType_Iframe(id, "movie");
+        if (id) {
+            this.props.getMediaType_Iframe(id, "movie");
+        }
     };
 
     componentDidMount() {
+        this._isMounted = true;
         this.isLoading = true;
 
         window.scrollTo(0, 0);
 
-        this.MoviesDetails(this.props.match.params.id);
-
-        setTimeout(() => this.IFrame(this.props.match.params.id), 500);
+        const id = this.props.match.params.id;
+        if (id) {
+            this.MoviesDetails(id);
+            setTimeout(() => {
+                if (this._isMounted) {
+                    this.IFrame(id);
+                }
+            }, 500);
+        }
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.match.params.id !== prevProps.match.params.id) {
-            this.MoviesDetails(this.props.match.params.id);
-            setTimeout(() => this.IFrame(this.props.match.params.id), 500);
+            const id = this.props.match.params.id;
+            if (id) {
+                this.MoviesDetails(id);
+                setTimeout(() => {
+                    if (this._isMounted) {
+                        this.IFrame(id);
+                    }
+                }, 500);
+            }
         }
     }
+
     componentWillUnmount() {
+        this._isMounted = false;
         this.isLoading = false;
-        clearTimeout();
     }
 
     goToPersonAbout = (actor) => {
@@ -61,14 +81,21 @@ class aboutMovie extends Component {
     };
 
     torrentDownload = async (query) => {
-        await axios
-            .get(`https://yts.mx/api/v2/list_movies.json?page=1&query_term=${query}`)
-            .then((res) => {
+        if (!this._isMounted) return;
+        try {
+            const res = await axios.get(
+                `https://yts.mx/api/v2/list_movies.json?page=1&query_term=${encodeURIComponent(query)}`
+            );
+            if (res.data?.data?.movies?.[0]?.torrents?.[0]?.url) {
                 window.location = res.data.data.movies[0].torrents[0].url;
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+            } else {
+                console.warn("No torrents found for:", query);
+                alert("No torrents found for this title.");
+            }
+        } catch (err) {
+            console.error("Torrent search error:", err.message);
+            alert("Could not connect to torrent service. The service may be unavailable.");
+        }
     };
 
     render() {
@@ -275,15 +302,7 @@ class aboutMovie extends Component {
                                 ) : null}
                             </div>
                         ) : (
-                            <div className="Loader">
-                                <Loader
-                                    type="Bars"
-                                    color="#00BFFF"
-                                    height={100}
-                                    width={100}
-                                    timeout={3000}
-                                />
-                            </div>
+                            <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
                         )}
 
                         <MovieShow poster={this.props.movieDetails} />

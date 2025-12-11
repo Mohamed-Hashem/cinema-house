@@ -11,7 +11,7 @@ import { Provider } from "react-redux";
 import { HashRouter } from "react-router-dom";
 
 //** import App **//
-import App from "./App.js";
+import App from "./App.jsx";
 
 //** import Scss Style and Css Styles **//
 import "./index.scss";

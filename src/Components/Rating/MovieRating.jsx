@@ -2,6 +2,8 @@ import { useState } from "react";
 import { FaStar } from "react-icons/fa";
 import axios from "axios";
 
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+
 const colors = {
     orange: "#FFBA5A",
     grey: "#a9a9a9",
@@ -10,27 +12,20 @@ const colors = {
 function MovieRating({ rate }) {
     const [currentValue, setCurrentValue] = useState(null);
     const [hoverValue, setHoverValue] = useState(undefined);
-    // const [feedback, setFeedback] = useState("");
-    // const [review, setReview] = useState([]);
-    // const [loading, setLoading] = useState(false);
 
     const stars = Array(10).fill(0);
 
     const handleClick = async (value) => {
         setCurrentValue(value);
-        console.log(value);
 
-        await axios
-            .post(
-                `https://api.themoviedb.org/3/movie/${rate.id}/rating?api_key=0c46ad1eb5954840ed97f5e537764be8`,
-                { value: currentValue }
-            )
-            .then((res) => {
-                console.log(res);
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+        try {
+            await axios.post(
+                `https://api.themoviedb.org/3/movie/${rate.id}/rating?api_key=${TMDB_API_KEY}`,
+                { value: value }
+            );
+        } catch (err) {
+            console.error("Error submitting movie rating:", err);
+        }
     };
 
     const handleMouseOver = (newHoverValue) => {
@@ -40,26 +35,6 @@ function MovieRating({ rate }) {
     const handleMouseLeave = () => {
         setHoverValue(undefined);
     };
-
-    // const fetchReviews = async () => {
-    //     await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/reviews?api_key=0c46ad1eb5954840ed97f5e537764be8`).then((res) => {
-
-    //         setLoading(true);
-    //         console.log(res.data.results);
-    //         setReview([feedback, ...res.data.results]);
-    //         console.log(feedback);
-
-    //     }).catch((err) => {
-    //         console.log(err);
-    //     })
-    // }
-
-    // useEffect(() => {
-    //     fetchReviews();
-    //     return () => {
-    //         setReview([]);
-    //     }
-    // }, []);
 
     return (
         <>

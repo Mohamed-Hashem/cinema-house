@@ -1,12 +1,13 @@
 import React, { Component } from "react";
 import axios from "axios";
-import Navbar from "./../../Components/Navbar/Navbar";
 
-import Loader from "react-loader-spinner";
-import ScrollToTop from "./../../Components/ScrollToTop/ScrollToTop";
+import { LoadingSpinner } from "../../Components/shared";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 export default class People extends Component {
     isLoading = false;
+    _isMounted = false;
     controller = new AbortController();
 
     constructor() {
@@ -26,10 +27,9 @@ export default class People extends Component {
         this.isLoading = true;
 
         axios
-            .get(
-                `https://api.themoviedb.org/3/person/popular?api_key=0c46ad1eb5954840ed97f5e537764be8&page=${page}`
-            )
+            .get(`https://api.themoviedb.org/3/person/popular?api_key=${TMDB_API_KEY}&page=${page}`)
             .then((res) => {
+                if (!this._isMounted) return;
                 let { results } = res.data;
 
                 this.setState({
@@ -39,6 +39,7 @@ export default class People extends Component {
     }
 
     componentDidMount() {
+        this._isMounted = true;
         this.getPeople(this.state.page);
 
         var options = {
@@ -52,6 +53,7 @@ export default class People extends Component {
     }
 
     handleObserver(entities) {
+        if (!this._isMounted) return;
         const y = entities[0].boundingClientRect.y;
 
         if (this.state.prevY > y) {
@@ -64,91 +66,66 @@ export default class People extends Component {
     }
 
     componentWillUnmount() {
+        this._isMounted = false;
         this.isLoading = false;
         this.controller.abort();
+        if (this.observer) {
+            this.observer.disconnect();
+        }
     }
 
     goToPersonAbout = (actor) => {
         window.scrollTo(0, 0);
-        this.props.history.push(`/aboutPerson/${actor.id}`, actor);
+        this.props.history.push(`/actors/${actor.id}`, actor);
     };
 
     render() {
+        const { people } = this.state;
+
         return (
-            <>
-                <Navbar />
-
-                <ScrollToTop />
-
-                <section className="container people" style={{ minHeight: "71vh" }}>
-                    {this.isLoading ? (
-                        <div className="row">
-                            {React.Children.toArray(
-                                // that handle a unique key itself
-                                this.state.people.map((value) => {
-                                    return (
-                                        <div
-                                            className="item col-xl-3 col-lg-4 col-md-6 col-sm-6 my-2 card card-body"
-                                            onClick={() => this.goToPersonAbout(value)}
-                                        >
-                                            <div className="text-center position-relative mb-2">
-                                                <div className="captionLayer overflow-hidden mb-2">
-                                                    <img
-                                                        src={
-                                                            value.profile_path !== null
-                                                                ? `https://image.tmdb.org/t/p/original/${value.profile_path}`
-                                                                : "https://via.placeholder.com/468x700/1E2D55 ?Text=Digital.com"
-                                                        }
-                                                        width="100%"
-                                                        height="350"
-                                                        alt={
-                                                            value.title !== "undefined"
-                                                                ? value.title
-                                                                : value.name
-                                                        }
-                                                        title={
-                                                            value.title === "undefined"
-                                                                ? value.name
-                                                                : value.title
-                                                        }
-                                                    />
-                                                    <div className="item-layer position-absolute w-100 h-100"></div>
-                                                </div>
-
-                                                <b>
-                                                    {value.title} {value.name}
-                                                </b>
-                                            </div>
+            <section className="container people" style={{ minHeight: "71vh" }}>
+                {this.isLoading && people.length > 0 ? (
+                    <div className="row">
+                        {people
+                            .filter((person) => person.profile_path)
+                            .map((value) => (
+                                <div
+                                    key={value.id}
+                                    className="item col-xl-3 col-lg-4 col-md-6 col-sm-6 my-2 card card-body"
+                                    onClick={() => this.goToPersonAbout(value)}
+                                >
+                                    <div className="text-center position-relative mb-2">
+                                        <div className="captionLayer overflow-hidden mb-2">
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/original/${value.profile_path}`}
+                                                width="100%"
+                                                height="350"
+                                                alt={value.name}
+                                                title={value.name}
+                                            />
+                                            <div className="item-layer position-absolute w-100 h-100"></div>
                                         </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    ) : (
-                        <div className="Loader">
-                            <Loader type="Bars" color="#00BFFF" height={100} width={100} />
-                        </div>
-                    )}
-
-                    <div
-                        ref={(loadingRef) => (this.loadingRef = loadingRef)}
-                        style={{ height: "100px", margin: "30px" }}
-                    >
-                        <span
-                            style={{ display: this.isLoading ? "block" : "none" }}
-                            className="py-2 text-center"
-                        >
-                            <Loader
-                                type="Bars"
-                                color="#00BFFF"
-                                height={80}
-                                width={80}
-                                time={1000}
-                            />
-                        </span>
+                                        <b>{value.name}</b>
+                                    </div>
+                                </div>
+                            ))}
                     </div>
-                </section>
-            </>
+                ) : !this.isLoading ? (
+                    <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
+                ) : null}
+
+                <div
+                    ref={(loadingRef) => (this.loadingRef = loadingRef)}
+                    style={{ height: "100px", margin: "30px" }}
+                >
+                    <span
+                        style={{ display: this.isLoading ? "block" : "none" }}
+                        className="py-2 text-center"
+                    >
+                        <LoadingSpinner />
+                    </span>
+                </div>
+            </section>
         );
     }
 }

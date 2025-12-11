@@ -1,13 +1,16 @@
 import axios from "axios";
 import React, { Component } from "react";
-import Loader from "react-loader-spinner";
+import { LoadingSpinner } from "../../Components/shared";
 import PersonMovies from "./../../Components/Recommendations/PersonMovies";
 import PersonPopular from "./../../Components/Recommendations/PersonPopular";
 import PersonShow from "./../../Components/ShowImages/PersonShow";
 import PersonTvShow from "./../../Components/ShowImages/PersonTvShow";
 
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+
 export default class aboutPerson extends Component {
     isLoading = false;
+    _isMounted = false;
 
     constructor(props) {
         super(props);
@@ -20,27 +23,33 @@ export default class aboutPerson extends Component {
     }
 
     PersonDetails = async (id) => {
+        if (!id) return;
+
         this.isLoading = true;
 
         await axios
-            .get(
-                `https://api.themoviedb.org/3/person/${id}?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
+            .get(`https://api.themoviedb.org/3/person/${id}?api_key=${TMDB_API_KEY}`)
             .then((res) => {
-                this.setState({ personDetails: res.data });
+                if (this._isMounted) {
+                    this.setState({ personDetails: res.data });
+                }
             })
             .catch((err) => {
-                console.log(err);
-                this.setState({ personDetails: null });
+                console.error("Error fetching person details:", err);
+                if (this._isMounted) {
+                    this.setState({ personDetails: null });
+                }
             });
     };
 
     componentDidMount() {
+        this._isMounted = true;
         window.scrollTo(0, 0);
         this.PersonDetails(this.props.match.params.id);
     }
 
     componentWillUnmount() {
+        this._isMounted = false;
         this.isLoading = false;
     }
 
@@ -185,15 +194,7 @@ export default class aboutPerson extends Component {
                                 </div>
                             </div>
                         ) : (
-                            <div className="Loader">
-                                <Loader
-                                    type="Bars"
-                                    color="#00BFFF"
-                                    height={100}
-                                    width={100}
-                                    timeout={3000}
-                                />
-                            </div>
+                            <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
                         )}
 
                         <PersonShow poster={this.state.personDetails} />

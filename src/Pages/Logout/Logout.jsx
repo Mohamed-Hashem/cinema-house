@@ -3,6 +3,8 @@ import { Redirect } from "react-router-dom";
 import SolidNavbar from "../../Components/Solid Navbar/SolidNavbar";
 
 export default class Logout extends Component {
+    _isMounted = false;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -11,16 +13,20 @@ export default class Logout extends Component {
     }
 
     componentDidMount() {
+        this._isMounted = true;
         // Clear token from localStorage
         localStorage.removeItem("token");
 
         // Redirect to login after 2 seconds
         this.timeout = setTimeout(() => {
-            this.setState({ redirectToLogin: true });
+            if (this._isMounted) {
+                this.setState({ redirectToLogin: true });
+            }
         }, 2000);
     }
 
     componentWillUnmount() {
+        this._isMounted = false;
         // Clear timeout on unmount
         if (this.timeout) {
             clearTimeout(this.timeout);

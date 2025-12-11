@@ -1,55 +1,90 @@
-import React, { Component } from "react";
+import React, { Component, Suspense, lazy } from "react";
 import { Route, Switch, Redirect } from "react-router-dom";
 
-import Home from "./Pages/Home/Home";
-import Movies from "./Pages/Movies/Movies";
-import Tv from "./Pages/Tv/Tv";
-import Login from "./Pages/Login/Login";
-import Register from "./Pages/Register/Register";
-import Logout from "./Pages/Logout/Logout";
+// Non-lazy imports for components needed immediately
 import Footer from "./Components/Footer/Footer";
-import NotFound from "./Pages/NotFound/NotFound";
+import Navbar from "./Components/Navbar/Navbar";
+import SolidNavbar from "./Components/Solid Navbar/SolidNavbar";
+import ScrollToTop from "./Components/ScrollToTop/ScrollToTop";
 import ProtectedRoute from "./Components/ProtecedRoute/ProtectedRoute";
-import People from "./Pages/People/People";
-import Search from "./Pages/Search/Search";
 import CheckToken from "./Components/CheckToken/CheckToken";
-import aboutMovie from "./Pages/About/aboutMovie";
-import aboutTv from "./Pages/About/aboutTv";
-import aboutPerson from "./Pages/About/aboutPerson.jsx";
-import SeasonData from "./Components/Tv Seasons/SeasonData";
-import Episode from "./Components/Tv Seasons/Episode";
+import { LoadingSpinner, ErrorBoundary } from "./Components/shared";
+
+// Lazy load page components for better initial load performance
+const Home = lazy(() => import("./Pages/Home/Home"));
+const Movies = lazy(() => import("./Pages/Movies/Movies"));
+const Tv = lazy(() => import("./Pages/Tv/Tv"));
+const Login = lazy(() => import("./Pages/Login/Login"));
+const Register = lazy(() => import("./Pages/Register/Register"));
+const Logout = lazy(() => import("./Pages/Logout/Logout"));
+const NotFound = lazy(() => import("./Pages/NotFound/NotFound"));
+const People = lazy(() => import("./Pages/People/People"));
+const Search = lazy(() => import("./Pages/Search/Search"));
+const AboutMovie = lazy(() => import("./Pages/About/aboutMovie"));
+const AboutTv = lazy(() => import("./Pages/About/aboutTv"));
+const AboutPerson = lazy(() => import("./Pages/About/aboutPerson"));
+const SeasonData = lazy(() => import("./Components/Tv Seasons/SeasonData"));
+const Episode = lazy(() => import("./Components/Tv Seasons/Episode"));
+
+// Loading fallback component for Suspense
+const PageLoader = () => (
+    <div
+        style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+            backgroundColor: "#141414",
+        }}
+    >
+        <LoadingSpinner height={80} width={80} color="#e50914" />
+    </div>
+);
 
 export default class App extends Component {
     render() {
+        const token = localStorage.getItem("token");
+        const isAuthenticated = !!token;
+
         return (
-            <>
-                <Switch>
-                    <ProtectedRoute path="/home" component={Home} />
+            <ErrorBoundary>
+                <div className="layer"></div>
+                <ScrollToTop />
 
-                    <ProtectedRoute path="/movies" component={Movies} />
-                    <ProtectedRoute path="/series" component={Tv} />
-                    <ProtectedRoute path="/actors" component={People} />
+                {/* Show appropriate navbar based on auth state */}
+                {isAuthenticated ? <Navbar /> : <SolidNavbar />}
 
-                    <ProtectedRoute path="/search" component={Search} />
+                <Suspense fallback={<PageLoader />}>
+                    <Switch>
+                        <ProtectedRoute path="/home" component={Home} />
 
-                    <ProtectedRoute path="/aboutMovie" component={aboutMovie} />
-                    <ProtectedRoute path="/aboutTv" component={aboutTv} />
-                    <ProtectedRoute path="/aboutPerson" component={aboutPerson} />
+                        {/* Specific routes with params must come before generic routes */}
+                        <ProtectedRoute path="/movies/:id" component={AboutMovie} />
+                        <ProtectedRoute path="/series/:id" component={AboutTv} />
+                        <ProtectedRoute path="/actors/:id" component={AboutPerson} />
+                        <ProtectedRoute path="/season/:seasonNumber" component={SeasonData} />
+                        <ProtectedRoute path="/episode/:episodeNumber" component={Episode} />
 
-                    <ProtectedRoute path="/season" component={SeasonData} />
-                    <ProtectedRoute path="/episode" component={Episode} />
+                        {/* Generic list routes */}
+                        <ProtectedRoute exact path="/movies" component={Movies} />
+                        <ProtectedRoute exact path="/series" component={Tv} />
+                        <ProtectedRoute exact path="/actors" component={People} />
 
-                    <CheckToken path="/login" component={Login} />
-                    <CheckToken path="/register" component={Register} />
+                        <ProtectedRoute path="/search" component={Search} />
 
-                    <Route path="/logout" component={Logout} />
+                        {/* Auth routes */}
+                        <CheckToken path="/login" component={Login} />
+                        <CheckToken path="/register" component={Register} />
+                        <Route path="/logout" component={Logout} />
 
-                    <Redirect exact from="/" to="/login" state={null} />
-                    <ProtectedRoute path="*" component={NotFound} />
-                </Switch>
+                        {/* Redirects and fallback */}
+                        <Redirect exact from="/" to="/login" />
+                        <ProtectedRoute path="*" component={NotFound} />
+                    </Switch>
+                </Suspense>
 
                 <Footer />
-            </>
+            </ErrorBoundary>
         );
     }
 }

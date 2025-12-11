@@ -1,38 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
 const TvActors = ({ actors, goToPersonAbout }) => {
     const [loading, setLoading] = useState(false);
     const [credits, setCredits] = useState([]);
+    const isMountedRef = useRef(true);
 
-    const fetchActors = async () => {
-        if (!actors?.id) return;
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${actors.id}/aggregate_credits?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((response) => {
+    const fetchActors = useCallback(async (actorId) => {
+        if (!actorId) return;
+        try {
+            const response = await axios.get(
+                `https://api.themoviedb.org/3/tv/${actorId}/aggregate_credits?api_key=${TMDB_API_KEY}`
+            );
+            if (isMountedRef.current) {
                 setLoading(true);
                 setCredits(response.data.cast);
-            })
-            .catch((error) => {
-                console.log(error);
+            }
+        } catch (error) {
+            console.error("Error fetching TV actors:", error);
+            if (isMountedRef.current) {
                 setCredits([]);
-            });
-    };
+            }
+        }
+    }, []);
 
     useEffect(() => {
-        fetchActors();
+        isMountedRef.current = true;
+        fetchActors(actors?.id);
 
         return () => {
-            setLoading(false);
-            setCredits([]);
+            isMountedRef.current = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [actors?.id]);
+    }, [actors?.id, fetchActors]);
 
     // Return null if actors is not defined
     if (!actors?.id) return null;
@@ -75,7 +79,7 @@ const TvActors = ({ actors, goToPersonAbout }) => {
         },
     };
 
-    return loading ? (
+    return loading && credits.length > 0 ? (
         <>
             <div className="w-100 line my-5"></div>
 

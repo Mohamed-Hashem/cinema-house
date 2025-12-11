@@ -1,39 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
 const TvRecommendations = ({ series, goToTvAbout }) => {
     const [loading, setLoading] = useState(false);
     const [credits, setCredits] = useState([]);
+    const isMountedRef = useRef(true);
 
-    const fetchImages = async () => {
-        if (!series?.id) return;
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${series.id}/recommendations?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((response) => {
-                if (response.data.results.length > 0) {
-                    setLoading(true);
-                    setCredits(response.data.results);
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
+    const fetchImages = useCallback(async (seriesId) => {
+        if (!seriesId) return;
+        try {
+            const response = await axios.get(
+                `https://api.themoviedb.org/3/tv/${seriesId}/recommendations?api_key=${TMDB_API_KEY}`
+            );
+            if (isMountedRef.current && response.data.results.length > 0) {
+                setLoading(true);
+                setCredits(response.data.results);
+            }
+        } catch (error) {
+            console.error("Error fetching TV recommendations:", error);
+            if (isMountedRef.current) {
                 setCredits([]);
-            });
-    };
+            }
+        }
+    }, []);
 
     useEffect(() => {
-        fetchImages();
+        isMountedRef.current = true;
+        fetchImages(series?.id);
+
         return () => {
-            setLoading(false);
-            setCredits([]);
+            isMountedRef.current = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [series?.id]);
+    }, [series?.id, fetchImages]);
 
     // Return null if series is not defined
     if (!series?.id) return null;
@@ -83,7 +86,7 @@ const TvRecommendations = ({ series, goToTvAbout }) => {
         },
     };
 
-    return loading ? (
+    return loading && credits.length > 0 ? (
         <>
             <div className="w-100 line my-5"></div>
             <div className="item text-center my-3">

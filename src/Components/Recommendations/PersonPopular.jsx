@@ -1,41 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
 const PersonPopular = ({ actor, goToPersonAbout }) => {
     const [credits, setCredits] = useState([]);
     const [loading, setLoading] = useState(false);
+    const isMountedRef = useRef(true);
 
-    const fetchImages = async () => {
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/person/popular?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((res) => {
-                if (res.data.results.length > 0) {
-                    setLoading(true);
-                    setCredits(res.data.results);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
+    const fetchImages = useCallback(async () => {
+        try {
+            const res = await axios.get(
+                `https://api.themoviedb.org/3/person/popular?api_key=${TMDB_API_KEY}`
+            );
+            if (isMountedRef.current && res.data.results.length > 0) {
+                setLoading(true);
+                setCredits(res.data.results);
+            }
+        } catch (err) {
+            console.error("Error fetching popular people:", err);
+            if (isMountedRef.current) {
                 setCredits([]);
-            });
-    };
+            }
+        }
+    }, []);
 
     useEffect(() => {
+        isMountedRef.current = true;
         if (actor) {
             fetchImages();
         }
 
         return () => {
-            setLoading(false);
-            setCredits([]);
+            isMountedRef.current = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [actor]);
+    }, [actor, fetchImages]);
 
     // Return null if actor is not defined
     if (!actor) return null;
@@ -77,7 +79,7 @@ const PersonPopular = ({ actor, goToPersonAbout }) => {
         },
     };
 
-    return loading ? (
+    return loading && credits.length > 0 ? (
         <>
             <div className="my-5">
                 <div className="w-100 line my-5"></div>

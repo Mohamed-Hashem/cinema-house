@@ -1,5 +1,7 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
@@ -9,6 +11,7 @@ const SeasonData = (props) => {
     const [season, setSeason] = useState([]);
     const [seasonLoading, setSeasonLoading] = useState(false);
     const [seasonData, setSeasonData] = useState([]);
+    const isMountedRef = useRef(true);
 
     const goToSeason = (season) => {
         window.scrollTo(0, 0);
@@ -28,55 +31,59 @@ const SeasonData = (props) => {
         });
     };
 
-    const fetchSessions = async (season) => {
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${season.id}?api_key=0c46ad1eb5954840ed97f5e537764be8&append_to_response=all`
-            )
-            .then((res) => {
-                if (res.data.seasons.length > 0) {
-                    setSeasonData(res.data);
-                    setSeasonLoading(true);
-                    setSeason(res.data.seasons);
-                } else {
-                    setSeason([]);
-                    setSeasonData([]);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
+    const fetchSessions = useCallback(async (seasonState) => {
+        if (!seasonState?.id) return;
+        try {
+            const res = await axios.get(
+                `https://api.themoviedb.org/3/tv/${seasonState.id}?api_key=${TMDB_API_KEY}&append_to_response=all`
+            );
+            if (isMountedRef.current && res.data.seasons.length > 0) {
+                setSeasonData(res.data);
+                setSeasonLoading(true);
+                setSeason(res.data.seasons);
+            } else if (isMountedRef.current) {
                 setSeason([]);
-            });
-    };
+                setSeasonData([]);
+            }
+        } catch (err) {
+            console.error("Error fetching seasons:", err);
+            if (isMountedRef.current) {
+                setSeason([]);
+            }
+        }
+    }, []);
 
-    const fetchEpisodes = async (season) => {
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${season.id}/season/${season.season_number}?api_key=0c46ad1eb5954840ed97f5e537764be8&append_to_response=all`
-            )
-            .then((res) => {
-                if (res.data.episodes.length > 0) {
-                    setEpisode(res.data.episodes);
-                    setEpsLoading(true);
-                } else setEpisode([]);
-            })
-            .catch((err) => {
-                console.log(err);
+    const fetchEpisodes = useCallback(async (seasonState) => {
+        if (!seasonState?.id) return;
+        try {
+            const res = await axios.get(
+                `https://api.themoviedb.org/3/tv/${seasonState.id}/season/${seasonState.season_number}?api_key=${TMDB_API_KEY}&append_to_response=all`
+            );
+            if (isMountedRef.current && res.data.episodes.length > 0) {
+                setEpisode(res.data.episodes);
+                setEpsLoading(true);
+            } else if (isMountedRef.current) {
                 setEpisode([]);
-            });
-    };
+            }
+        } catch (err) {
+            console.error("Error fetching episodes:", err);
+            if (isMountedRef.current) {
+                setEpisode([]);
+            }
+        }
+    }, []);
 
     useEffect(() => {
-        fetchSessions(props.location.state);
-        fetchEpisodes(props.location.state);
+        isMountedRef.current = true;
+        if (props.location.state) {
+            fetchSessions(props.location.state);
+            fetchEpisodes(props.location.state);
+        }
 
         return () => {
-            setEpsLoading(false);
-            setSeasonLoading(false);
-            setEpisode([]);
-            setSeason([]);
+            isMountedRef.current = false;
         };
-    }, [props]);
+    }, [props.location.state, fetchSessions, fetchEpisodes]);
 
     return (
         <>

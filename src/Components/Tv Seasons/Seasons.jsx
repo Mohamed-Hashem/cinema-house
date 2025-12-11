@@ -1,39 +1,41 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
 const Seasons = ({ Season, goToSeason }) => {
     const [season, setSeason] = useState([]);
     const [loading, setLoading] = useState(false);
+    const isMountedRef = useRef(true);
 
-    const fetchSessions = async (id) => {
+    const fetchSessions = useCallback(async (id) => {
         if (!id) return;
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${id}?api_key=0c46ad1eb5954840ed97f5e537764be8&append_to_response=all`
-            )
-            .then((res) => {
-                if (res.data.seasons.length > 0) {
-                    setSeason(res.data.seasons);
-                    setLoading(true);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
+        try {
+            const res = await axios.get(
+                `https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_API_KEY}&append_to_response=all`
+            );
+            if (isMountedRef.current && res.data.seasons.length > 0) {
+                setSeason(res.data.seasons);
+                setLoading(true);
+            }
+        } catch (err) {
+            console.error("Error fetching seasons:", err);
+            if (isMountedRef.current) {
                 setSeason([]);
-            });
-    };
+            }
+        }
+    }, []);
 
     useEffect(() => {
+        isMountedRef.current = true;
         fetchSessions(Season?.id);
 
         return () => {
-            setSeason([]);
-            setLoading(false);
+            isMountedRef.current = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [Season?.id]);
+    }, [Season?.id, fetchSessions]);
 
     // Return null if Season is not defined
     if (!Season?.id) return null;

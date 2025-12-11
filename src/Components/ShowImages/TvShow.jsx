@@ -1,39 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
+
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
 const TvShow = ({ poster }) => {
     const [credits, setCredits] = useState([]);
     const [loading, setLoading] = useState(false);
+    const isMountedRef = useRef(true);
 
-    const fetchImages = async () => {
-        if (!poster?.id) return;
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${poster.id}/images?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((res) => {
-                if (res.data.backdrops.length > 0) {
-                    setCredits(res.data.backdrops);
-                    setLoading(true);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
+    const fetchImages = useCallback(async (posterId) => {
+        if (!posterId) return;
+        try {
+            const res = await axios.get(
+                `https://api.themoviedb.org/3/tv/${posterId}/images?api_key=${TMDB_API_KEY}`
+            );
+            if (isMountedRef.current && res.data.backdrops.length > 0) {
+                setCredits(res.data.backdrops);
+                setLoading(true);
+            }
+        } catch (err) {
+            console.error("Error fetching TV images:", err);
+            if (isMountedRef.current) {
                 setCredits([]);
-            });
-    };
+            }
+        }
+    }, []);
 
     useEffect(() => {
-        fetchImages();
+        isMountedRef.current = true;
+        fetchImages(poster?.id);
+
         return () => {
-            setLoading(false);
-            setCredits([]);
+            isMountedRef.current = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [poster?.id]);
+    }, [poster?.id, fetchImages]);
 
     // Return null if poster is not defined
     if (!poster?.id) return null;
@@ -69,7 +72,7 @@ const TvShow = ({ poster }) => {
         },
     };
 
-    return loading ? (
+    return loading && credits.length > 0 ? (
         <>
             <div className="w-100 line my-5"></div>
 
