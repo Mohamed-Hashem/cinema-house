@@ -6,8 +6,37 @@ const handleDragStart = (e) => e.preventDefault();
 
 const TvRecommendations = ({ series, goToTvAbout }) => {
     const [loading, setLoading] = useState(false);
-
     const [credits, setCredits] = useState([]);
+
+    const fetchImages = async () => {
+        if (!series?.id) return;
+        await axios
+            .get(
+                `https://api.themoviedb.org/3/tv/${series.id}/recommendations?api_key=0c46ad1eb5954840ed97f5e537764be8`
+            )
+            .then((response) => {
+                if (response.data.results.length > 0) {
+                    setLoading(true);
+                    setCredits(response.data.results);
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                setCredits([]);
+            });
+    };
+
+    useEffect(() => {
+        fetchImages();
+        return () => {
+            setLoading(false);
+            setCredits([]);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [series?.id]);
+
+    // Return null if series is not defined
+    if (!series?.id) return null;
 
     const items = React.Children.toArray(
         credits?.map((poster) => {
@@ -53,31 +82,6 @@ const TvRecommendations = ({ series, goToTvAbout }) => {
             items: 4,
         },
     };
-
-    const fetchImages = async () => {
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${series.id}/recommendations?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((response) => {
-                if (response.data.results.length > 0) {
-                    setLoading(true);
-                    setCredits(response.data.results);
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-                setCredits([]);
-            });
-    };
-
-    useEffect(() => {
-        fetchImages();
-        return () => {
-            setLoading(false);
-            setCredits([]);
-        };
-    }, [series]);
 
     return loading ? (
         <>

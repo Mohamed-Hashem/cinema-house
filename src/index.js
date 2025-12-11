@@ -8,7 +8,7 @@ import ReactDOM from "react-dom";
 
 //** import Redux Provider **//
 import { Provider } from "react-redux";
-import { BrowserRouter } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 
 //** import App **//
 import App from "./App.js";
@@ -24,11 +24,11 @@ import { store } from "./Redux/Store/Store.jsx";
 
 ReactDOM.render(
     <React.StrictMode>
-        <BrowserRouter basename="/#">
+        <HashRouter>
             <Provider store={store}>
                 <App />
             </Provider>
-        </BrowserRouter>
+        </HashRouter>
     </React.StrictMode>,
 
     document.getElementById("root")

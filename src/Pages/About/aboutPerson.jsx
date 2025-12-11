@@ -196,20 +196,20 @@ export default class aboutPerson extends Component {
                             </div>
                         )}
 
-                        <PersonShow poster={this.props.history.location.state} />
+                        <PersonShow poster={this.state.personDetails} />
 
                         <PersonMovies
-                            movie={this.props.history.location.state}
+                            movie={this.state.personDetails}
                             goToMovieAbout={this.goToMovieAbout}
                         />
 
                         <PersonTvShow
-                            series={this.props.location.state}
+                            series={this.state.personDetails}
                             goToTvAbout={this.goToTvAbout}
                         />
 
                         <PersonPopular
-                            actor={this.props.location.state}
+                            actor={this.state.personDetails}
                             goToPersonAbout={this.goToPersonAbout}
                         />
                     </div>

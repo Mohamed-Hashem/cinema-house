@@ -8,6 +8,7 @@ const Seasons = ({ Season, goToSeason }) => {
     const [loading, setLoading] = useState(false);
 
     const fetchSessions = async (id) => {
+        if (!id) return;
         await axios
             .get(
                 `https://api.themoviedb.org/3/tv/${id}?api_key=0c46ad1eb5954840ed97f5e537764be8&append_to_response=all`
@@ -25,13 +26,17 @@ const Seasons = ({ Season, goToSeason }) => {
     };
 
     useEffect(() => {
-        fetchSessions(Season.id);
+        fetchSessions(Season?.id);
 
         return () => {
             setSeason([]);
             setLoading(false);
         };
-    }, [Season]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [Season?.id]);
+
+    // Return null if Season is not defined
+    if (!Season?.id) return null;
 
     return loading ? (
         <>

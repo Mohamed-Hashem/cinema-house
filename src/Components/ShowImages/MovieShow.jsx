@@ -7,10 +7,23 @@ const handleDragStart = (e) => e.preventDefault();
 
 const MovieShow = ({ poster }) => {
     const dispatch = useDispatch();
-
     const allPosters = useSelector((state) => state.posters);
-
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (poster?.id) {
+            dispatch(fetchPosters("movie", poster.id, "images"));
+            setLoading(true);
+        }
+
+        return () => {
+            setLoading(false);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [poster?.id]);
+
+    // Return null if poster is not defined
+    if (!poster?.id) return null;
 
     const items = React.Children.toArray(
         allPosters?.map((img) => {
@@ -42,15 +55,6 @@ const MovieShow = ({ poster }) => {
             items: 5,
         },
     };
-
-    useEffect(() => {
-        dispatch(fetchPosters("movie", poster.id, "images"));
-        setLoading(true);
-
-        return () => {
-            setLoading(false);
-        };
-    }, []);
 
     return loading && allPosters.length > 0 ? (
         <>

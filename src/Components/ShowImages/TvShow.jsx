@@ -6,8 +6,37 @@ const handleDragStart = (e) => e.preventDefault();
 
 const TvShow = ({ poster }) => {
     const [credits, setCredits] = useState([]);
-
     const [loading, setLoading] = useState(false);
+
+    const fetchImages = async () => {
+        if (!poster?.id) return;
+        await axios
+            .get(
+                `https://api.themoviedb.org/3/tv/${poster.id}/images?api_key=0c46ad1eb5954840ed97f5e537764be8`
+            )
+            .then((res) => {
+                if (res.data.backdrops.length > 0) {
+                    setCredits(res.data.backdrops);
+                    setLoading(true);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                setCredits([]);
+            });
+    };
+
+    useEffect(() => {
+        fetchImages();
+        return () => {
+            setLoading(false);
+            setCredits([]);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [poster?.id]);
+
+    // Return null if poster is not defined
+    if (!poster?.id) return null;
 
     const items = React.Children.toArray(
         credits?.map((img) => {
@@ -39,31 +68,6 @@ const TvShow = ({ poster }) => {
             items: 5,
         },
     };
-
-    const fetchImages = async () => {
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${poster.id}/images?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((res) => {
-                if (res.data.backdrops.length > 0) {
-                    setCredits(res.data.backdrops);
-                    setLoading(true);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-                setCredits([]);
-            });
-    };
-
-    useEffect(() => {
-        fetchImages();
-        return () => {
-            setLoading(false);
-            setCredits([]);
-        };
-    }, [poster]);
 
     return loading ? (
         <>

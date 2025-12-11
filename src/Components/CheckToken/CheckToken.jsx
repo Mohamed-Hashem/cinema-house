@@ -7,8 +7,16 @@ export default class CheckToken extends Component {
         const token = localStorage.getItem("token");
 
         try {
-            if (token !== null) jwt_decode(this.token);
+            if (token !== null) {
+                const decoded = jwt_decode(token);
+                // Check if token is expired
+                if (decoded.exp * 1000 < Date.now()) {
+                    localStorage.removeItem("token");
+                    return <Route path={this.props.path} component={this.props.component} />;
+                }
+            }
         } catch (error) {
+            localStorage.removeItem("token");
             return <Route path={this.props.path} component={this.props.component} />;
         }
 

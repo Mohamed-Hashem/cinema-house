@@ -6,8 +6,36 @@ const handleDragStart = (e) => e.preventDefault();
 
 const TvActors = ({ actors, goToPersonAbout }) => {
     const [loading, setLoading] = useState(false);
-
     const [credits, setCredits] = useState([]);
+
+    const fetchActors = async () => {
+        if (!actors?.id) return;
+        await axios
+            .get(
+                `https://api.themoviedb.org/3/tv/${actors.id}/aggregate_credits?api_key=0c46ad1eb5954840ed97f5e537764be8`
+            )
+            .then((response) => {
+                setLoading(true);
+                setCredits(response.data.cast);
+            })
+            .catch((error) => {
+                console.log(error);
+                setCredits([]);
+            });
+    };
+
+    useEffect(() => {
+        fetchActors();
+
+        return () => {
+            setLoading(false);
+            setCredits([]);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [actors?.id]);
+
+    // Return null if actors is not defined
+    if (!actors?.id) return null;
 
     const items = React.Children.toArray(
         credits?.map((actor) => {
@@ -46,31 +74,6 @@ const TvActors = ({ actors, goToPersonAbout }) => {
             items: 4,
         },
     };
-
-    const fetchActors = async () => {
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/tv/${actors.id}/aggregate_credits?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((response) => {
-                console.log();
-                setLoading(true);
-                setCredits(response.data.cast);
-            })
-            .catch((error) => {
-                console.log(error);
-                setCredits([]);
-            });
-    };
-
-    useEffect(() => {
-        fetchActors();
-
-        return () => {
-            setLoading(false);
-            setCredits([]);
-        };
-    }, [actors]);
 
     return loading ? (
         <>

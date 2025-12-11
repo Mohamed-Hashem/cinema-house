@@ -333,22 +333,22 @@ export default class aboutTv extends Component {
                             </div>
                         )}
 
-                        <TvShow poster={this.props.location.state} />
+                        <TvShow poster={this.state.tvShowDetails} />
 
                         <TvActors
-                            actors={this.props.location.state}
+                            actors={this.state.tvShowDetails}
                             goToPersonAbout={this.goToPersonAbout}
                         />
 
-                        <Seasons Season={this.props.location.state} goToSeason={this.goToSeason} />
+                        <Seasons Season={this.state.tvShowDetails} goToSeason={this.goToSeason} />
 
                         <TvSimilar
-                            series={this.props.location.state}
+                            series={this.state.tvShowDetails}
                             goToTvAbout={this.goToTvAbout}
                         />
 
                         <TvRecommendations
-                            series={this.props.location.state}
+                            series={this.state.tvShowDetails}
                             goToTvAbout={this.goToTvAbout}
                         />
                     </div>

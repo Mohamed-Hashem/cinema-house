@@ -6,8 +6,38 @@ const handleDragStart = (e) => e.preventDefault();
 
 const PersonTvShow = ({ series, goToTvAbout }) => {
     const [credits, setCredits] = useState(null);
-
     const [loading, setLoading] = useState(false);
+
+    const fetchImages = async () => {
+        if (!series?.id) return;
+        await axios
+            .get(
+                `https://api.themoviedb.org/3/person/${series.id}/tv_credits?api_key=0c46ad1eb5954840ed97f5e537764be8`
+            )
+            .then((res) => {
+                if (res.data.cast.length > 0) {
+                    setLoading(true);
+                    setCredits(res.data.cast);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                setCredits([]);
+            });
+    };
+
+    useEffect(() => {
+        fetchImages();
+
+        return () => {
+            setLoading(false);
+            setCredits([]);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [series?.id]);
+
+    // Return null if series is not defined
+    if (!series?.id) return null;
 
     const items = React.Children.toArray(
         credits?.map((poster) => {
@@ -52,32 +82,6 @@ const PersonTvShow = ({ series, goToTvAbout }) => {
             items: 5,
         },
     };
-
-    const fetchImages = async () => {
-        await axios
-            .get(
-                `https://api.themoviedb.org/3/person/${series.id}/tv_credits?api_key=0c46ad1eb5954840ed97f5e537764be8`
-            )
-            .then((res) => {
-                if (res.data.cast.length > 0) {
-                    setLoading(true);
-                    setCredits(res.data.cast);
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-                setCredits([]);
-            });
-    };
-
-    useEffect(() => {
-        fetchImages();
-
-        return () => {
-            setLoading(false);
-            setCredits([]);
-        };
-    }, [series]);
 
     return loading ? (
         <>

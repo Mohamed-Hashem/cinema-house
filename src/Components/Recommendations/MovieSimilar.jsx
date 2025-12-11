@@ -7,10 +7,23 @@ const handleDragStart = (e) => e.preventDefault();
 
 const MovieSimilar = ({ movie, goToMovieAbout }) => {
     const dispatch = useDispatch();
-
     const [loading, setLoading] = useState(false);
-
     const similar = useSelector((state) => state.similar);
+
+    useEffect(() => {
+        if (movie?.id) {
+            dispatch(fetchSimilar("movie", movie.id, "similar"));
+            setLoading(true);
+        }
+
+        return () => {
+            setLoading(false);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [movie?.id]);
+
+    // Return null if movie is not defined
+    if (!movie?.id) return null;
 
     const items = React.Children.toArray(
         similar?.map((poster) => {
@@ -54,16 +67,6 @@ const MovieSimilar = ({ movie, goToMovieAbout }) => {
             items: 5,
         },
     };
-
-    useEffect(() => {
-        dispatch(fetchSimilar("movie", movie.id, "similar"));
-
-        setLoading(true);
-
-        return () => {
-            setLoading(false);
-        };
-    }, [movie]);
 
     return loading && similar.length > 0 ? (
         <>

@@ -7,10 +7,23 @@ const handleDragStart = (e) => e.preventDefault();
 
 const MovieActors = ({ actor, goToPersonAbout }) => {
     const dispatch = useDispatch();
-
     const credits = useSelector((state) => state.credits);
-
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (actor?.id) {
+            dispatch(fetchActors("movie", actor.id, "credits"));
+            setLoading(true);
+        }
+
+        return () => {
+            setLoading(false);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [actor?.id]);
+
+    // Return null if actor is not defined
+    if (!actor?.id) return null;
 
     const items = React.Children.toArray(
         credits?.map((actor) => {
@@ -53,15 +66,6 @@ const MovieActors = ({ actor, goToPersonAbout }) => {
             items: 5,
         },
     };
-
-    useEffect(() => {
-        dispatch(fetchActors("movie", actor.id, "credits"));
-        setLoading(true);
-
-        return () => {
-            setLoading(false);
-        };
-    }, [actor]);
 
     return loading && credits.length > 0 ? (
         <>

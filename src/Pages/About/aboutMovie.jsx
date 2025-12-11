@@ -286,20 +286,20 @@ class aboutMovie extends Component {
                             </div>
                         )}
 
-                        <MovieShow poster={this.props.location.state} />
+                        <MovieShow poster={this.props.movieDetails} />
 
                         <MovieActors
-                            actor={this.props.location.state}
+                            actor={this.props.movieDetails}
                             goToPersonAbout={this.goToPersonAbout}
                         />
 
                         <MovieSimilar
-                            movie={this.props.location.state}
+                            movie={this.props.movieDetails}
                             goToMovieAbout={this.goToMovieAbout}
                         />
 
                         <MovieRecommendations
-                            movie={this.props.location.state}
+                            movie={this.props.movieDetails}
                             goToMovieAbout={this.goToMovieAbout}
                         />
                     </div>

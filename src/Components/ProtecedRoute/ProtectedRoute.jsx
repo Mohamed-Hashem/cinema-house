@@ -3,19 +3,28 @@ import React, { Component } from "react";
 import { Redirect, Route } from "react-router-dom";
 
 export default class ProtectedRoute extends Component {
+    isTokenValid = (token) => {
+        try {
+            const decoded = jwt_decode(token);
+            // Check if token is expired
+            if (decoded.exp * 1000 < Date.now()) {
+                localStorage.removeItem("token");
+                return false;
+            }
+            return true;
+        } catch (error) {
+            localStorage.removeItem("token");
+            return false;
+        }
+    };
+
     render() {
         const token = localStorage.getItem("token");
 
-        try {
-            if (token !== null) jwt_decode(token);
-        } catch (error) {
-            localStorage.removeItem("token");
-            console.log("Error ", error.message);
+        if (token && this.isTokenValid(token)) {
+            return <Route path={this.props.path} component={this.props.component} />;
         }
-        return token ? (
-            <Route path={this.props.path} component={this.props.component} />
-        ) : (
-            <Redirect to="/login" />
-        );
+
+        return <Redirect to="/login" />;
     }
 }

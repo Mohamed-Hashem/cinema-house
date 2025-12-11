@@ -7,10 +7,23 @@ const handleDragStart = (e) => e.preventDefault();
 
 const MovieRecommendations = ({ movie, goToMovieAbout }) => {
     const dispatch = useDispatch();
-
     const [loading, setLoading] = useState(false);
-
     const recommendations = useSelector((state) => state.recommendations);
+
+    useEffect(() => {
+        if (movie?.id) {
+            dispatch(fetchRecommendations("movie", movie.id, "recommendations"));
+            setLoading(true);
+        }
+
+        return () => {
+            setLoading(false);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [movie?.id]);
+
+    // Return null if movie is not defined
+    if (!movie?.id) return null;
 
     const items = React.Children.toArray(
         recommendations?.map((poster) => {
@@ -57,16 +70,6 @@ const MovieRecommendations = ({ movie, goToMovieAbout }) => {
             items: 5,
         },
     };
-
-    useEffect(() => {
-        dispatch(fetchRecommendations("movie", movie.id, "recommendations"));
-
-        setLoading(true);
-
-        return () => {
-            setLoading(false);
-        };
-    }, [movie]);
 
     return loading ? (
         <>
