@@ -1,6 +1,6 @@
 {
     "name": "cinema-house-frontend",
-    "version": "0.1.0",
+    "version": "2.0.0",
     "description": "Cinema House - A modern React-based movie discovery application with TMDB API integration. Features include browsing movies, TV series, actors, authentication, and responsive design.",
     "private": true,
     "author": {
