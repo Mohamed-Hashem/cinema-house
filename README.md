@@ -8,7 +8,9 @@ A comprehensive movies and TV shows discovery platform built with React.
 
 ## Description
 
-Cinema House is a full-stack movies and TV shows website using TMDB API for data and Node.js/Express backend for authentication.
+Cinema House is a full-stack movies and TV shows website using TMDB API for data and AuthStack backend for authentication.
+
+🔗 **Backend Repository:** [AuthStack](https://github.com/Mohamed-Hashem/AuthStack)
 
 ---
 
@@ -18,7 +20,7 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 | -------------- | ------------------------------------------------- |
 | Frontend       | React.js, Redux, Redux Thunk, React Router        |
 | Styling        | Bootstrap, SASS/SCSS, CSS                         |
-| Backend        | Node.js, Express.js, MongoDB Atlas                |
+| Backend        | AuthStack (Node.js, Express.js, MongoDB Atlas)    |
 | Authentication | JWT, bcrypt                                       |
 | Security       | Helmet, CORS                                      |
 | Performance    | Compression (gzip), Memoization, Code Splitting   |
@@ -184,18 +186,6 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 
 ```
 cinema-house-frontend/
-├── backend-server/          # Express.js backend
-│   ├── models/              # MongoDB models
-│   │   └── User.js         # User model with timestamps
-│   ├── routes/              # API routes
-│   │   ├── auth.js         # Authentication endpoints
-│   │   └── data.js         # Profile & stats endpoints
-│   ├── middleware/          # Auth middleware
-│   │   └── auth.js         # JWT verification
-│   ├── utils/               # Backend utilities
-│   │   ├── validation.js   # Validation helpers
-│   │   └── helpers.js      # Response formatters
-│   └── README.md           # Backend documentation
 ├── public/                  # Static files
 └── src/
     ├── Components/
@@ -255,27 +245,25 @@ cinema-house-frontend/
 
 - Node.js (v14+)
 - npm or yarn
-- MongoDB Atlas account
 - TMDB API key
 
 ### Installation
 
 1. Clone the repository
-2. Install frontend dependencies
-3. Install backend dependencies
-4. Create `.env` file in root directory with TMDB API key and backend URL
-5. Configure backend `.env` file with MongoDB URI, JWT secret, and server settings
+2. Install dependencies
+3. Create `.env` file in root directory with TMDB API key and backend URL
 
 ### Running the App
 
 - Start frontend development server
-- Start backend server
 
 ---
 
 ## Backend API Documentation
 
-For detailed backend API documentation, routes, and endpoints, see [Backend README](backend-server/README.md).
+The backend is powered by **AuthStack** - a secure authentication and user management API.
+
+🔗 **Repository:** [https://github.com/Mohamed-Hashem/AuthStack](https://github.com/Mohamed-Hashem/AuthStack)
 
 ### Available API Routes
 
@@ -350,7 +338,7 @@ For detailed backend API documentation, routes, and endpoints, see [Backend READ
 ## API Reference
 
 - **TMDB API:** [https://developers.themoviedb.org/3](https://developers.themoviedb.org/3)
-- **Backend API:** See [Backend Documentation](backend-server/README.md)
+- **AuthStack Docs:** [https://github.com/Mohamed-Hashem/AuthStack](https://github.com/Mohamed-Hashem/AuthStack)
 
 ---
 

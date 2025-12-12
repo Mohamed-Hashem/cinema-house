@@ -46,11 +46,9 @@
     },
     "scripts": {
         "start": "react-scripts --openssl-legacy-provider start",
-        "dev": "concurrently \"yarn start\" \"yarn server\"",
         "build": "react-scripts --openssl-legacy-provider build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "server": "cd backend-server && node index.js",
         "format": "prettier --write \"src/**/*.{js,jsx,json,css,scss}\"",
         "format:check": "prettier --check \"src/**/*.{js,jsx,json,css,scss}\"",
         "lint": "eslint src/**/*.{js,jsx}",
@@ -75,7 +73,6 @@
         ]
     },
     "devDependencies": {
-        "concurrently": "^9.2.1",
         "eslint": "^7.11.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",

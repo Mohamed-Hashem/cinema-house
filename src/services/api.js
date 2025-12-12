@@ -2,7 +2,7 @@ import axios from "axios";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+const BACKEND_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const tmdbApi = axios.create({
     baseURL: TMDB_BASE_URL,
