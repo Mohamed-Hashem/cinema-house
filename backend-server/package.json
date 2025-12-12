@@ -14,7 +14,10 @@
   },
   "scripts": {
     "start": "node index.js",
+    "start:prod": "node dist/index.js",
     "dev": "nodemon index.js",
+    "build": "esbuild index.js --bundle --platform=node --target=node14 --outfile=dist/index.js --minify --external:bcryptjs --external:mongoose --external:jsonwebtoken",
+    "clean": "rimraf dist",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"**/*.js\"",
     "lint": "eslint **/*.js",
@@ -46,9 +49,11 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "esbuild": "^0.24.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "rimraf": "^6.0.1"
   }
 }
