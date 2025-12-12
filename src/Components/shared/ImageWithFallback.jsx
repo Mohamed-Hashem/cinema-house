@@ -14,6 +14,7 @@ const ImageWithFallback = memo(
         loading = "lazy",
         onLoad: onLoadCallback,
         onError: onErrorCallback,
+        fetchpriority,
     }) => {
         const [imgSrc, setImgSrc] = useState(src);
         const [isLoading, setIsLoading] = useState(true);
@@ -67,6 +68,7 @@ const ImageWithFallback = memo(
                     height={height}
                     loading={loading}
                     decoding="async"
+                    fetchpriority={fetchpriority}
                     onLoad={handleLoad}
                     onError={handleError}
                     style={{

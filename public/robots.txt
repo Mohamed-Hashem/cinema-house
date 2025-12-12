@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /logout
+Disallow: /profile
+
+Sitemap: https://cinema-house.vercel.app/sitemap.xml

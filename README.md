@@ -2,9 +2,7 @@
 
 A comprehensive movies and TV shows discovery platform built with React.
 
-🌐 **Live Demo:** [https://cinema-house.netlify.app/](https://cinema-house.netlify.app/)
-
-🌐 **Azure Mirror:** [https://lively-field-0a9a2621e.azurestaticapps.net](https://lively-field-0a9a2621e.azurestaticapps.net)
+🌐 **Live Demo:** [https://cinema-house.vercel.app](https://cinema-house.vercel.app)
 
 ## Description
 
@@ -122,20 +120,25 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 
 ### ⚡ Performance Optimizations
 
-- [x] Lazy loading images
-- [x] Memoized components (React.memo)
-- [x] Memoized navigation buttons in carousels
-- [x] Abort controllers for API requests
-- [x] Intersection Observer for infinite scroll
-- [x] Debounced/throttled handlers
-- [x] useDebouncedCallback hook for optimized callbacks
-- [x] Custom hooks for reusability
-- [x] Code splitting with React.lazy
-- [x] Optimized re-renders with useCallback/useMemo
-- [x] Centralized API service layer (49% code reduction)
-- [x] Optimized LoadingSpinner component (48% code reduction)
-- [x] ES6+ arrow functions throughout codebase
-- [x] Responsive carousel configuration
+- [x] **Image Optimization**: WebP format conversion for TMDB images, responsive srcset, lazy loading
+- [x] **Caching Strategy**: 1-year cache for static assets (462 KiB savings), immutable resources
+- [x] **Code Splitting**: Lazy loading routes with React.lazy (303 KiB unused JS removed)
+- [x] **Security Headers**: X-Content-Type-Options, X-Frame-Options, XSS Protection, Referrer-Policy
+- [x] **Resource Hints**: Preconnect, DNS prefetch, preload critical fonts and assets (310 ms savings)
+- [x] **CSS Optimization**: Custom Bootstrap build with only used components (34 KiB savings)
+- [x] **Font Loading**: font-display: swap for Montserrat Alternates
+- [x] **SEO**: robots.txt, sitemap.xml, meta tags optimization
+- [x] **Compression**: Background image optimization with content-visibility
+- [x] **Memoization**: React.memo for components, useCallback/useMemo for values
+- [x] **Abort Controllers**: Cancel API requests on unmount
+- [x] **Intersection Observer**: Infinite scroll optimization
+- [x] **Debounced/Throttled**: Search inputs and scroll handlers
+- [x] **Custom Hooks**: Reusable useApi, useDebounce, useThrottle, useInfiniteScroll
+- [x] **Centralized API**: Single axios instance with interceptors (49% code reduction)
+- [x] **ES6+ Modern Syntax**: Arrow functions, destructuring, template literals
+
+**Lighthouse Score: 91/100** (Performance) | [📊 Full Report](DEPLOYMENT-GUIDE.md)  
+✅ FCP: 0.8s (96/100) | ✅ LCP: 1.0s (96/100) | ⚠️ TBT: 210ms (79/100) | ✅ CLS: 0.001 (100/100) | ✅ SI: 1.3s (91/100)
 
 ### 🛠️ Technical Features
 
@@ -249,13 +252,76 @@ cinema-house-frontend/
 
 ### Installation
 
-1. Clone the repository
-2. Install dependencies
-3. Create `.env` file in root directory with TMDB API key and backend URL
+1. **Clone the repository**
+
+    ```bash
+    git clone https://github.com/Mohamed-Hashem/cinema-house-frontend.git
+    cd cinema-house-frontend
+    ```
+
+2. **Install dependencies**
+
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
+
+3. **Create `.env` file** in root directory:
+
+    ```env
+    REACT_APP_TMDB_API_KEY=your_tmdb_api_key_here
+    REACT_APP_BACKEND_URL=your_backend_api_url
+    SKIP_PREFLIGHT_CHECK=true
+    DISABLE_ESLINT_PLUGIN=true
+    ```
+
+4. **Get TMDB API Key**
+    - Visit [TMDB API](https://www.themoviedb.org/settings/api)
+    - Create an account and request an API key
+    - Copy the API key to your `.env` file
 
 ### Running the App
 
-- Start frontend development server
+**Development mode:**
+
+```bash
+npm start
+# or
+yarn start
+```
+
+Visit `http://localhost:3000`
+
+**Production build:**
+
+```bash
+npm run build
+# or
+yarn build
+```
+
+### Deployment (Vercel)
+
+1. **Install Vercel CLI** (optional)
+
+    ```bash
+    npm install -g vercel
+    ```
+
+2. **Add Environment Variables in Vercel Dashboard:**
+    - Go to your project → Settings → Environment Variables
+    - Add `REACT_APP_TMDB_API_KEY` with your TMDB API key
+    - Add `REACT_APP_BACKEND_URL` with `your_backend_api_url`
+    - Add `SKIP_PREFLIGHT_CHECK` with value `true`
+    - Add `DISABLE_ESLINT_PLUGIN` with value `true`
+
+3. **Deploy:**
+    ```bash
+    vercel --prod
+    ```
+
+**Important:** Make sure the AuthStack backend has CORS configured to accept requests from your Cinema House domain.
 
 ---
 

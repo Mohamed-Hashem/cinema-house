@@ -14,6 +14,7 @@ const SkeletonCard = memo(({ count = 1 }) => {
 
     return (
         <>
+            {/* eslint-disable react/no-array-index-key */}
             {[...Array(count)].map((_, i) => (
                 <div
                     key={`skeleton-${i}`}
@@ -25,6 +26,7 @@ const SkeletonCard = memo(({ count = 1 }) => {
                     </div>
                 </div>
             ))}
+            {/* eslint-enable react/no-array-index-key */}
         </>
     );
 });

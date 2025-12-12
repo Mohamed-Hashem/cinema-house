@@ -47,10 +47,11 @@ function MovieRating({ rate }) {
                     </div>
 
                     <div style={styles.stars}>
+                        {/* eslint-disable react/no-array-index-key */}
                         {stars.map((_, index) => {
                             return (
                                 <StarIcon
-                                    key={index}
+                                    key={`star-${index}`}
                                     size={24}
                                     onMouseOver={() => handleMouseOver(index + 1)}
                                     onMouseLeave={handleMouseLeave}
@@ -64,6 +65,7 @@ function MovieRating({ rate }) {
                                 />
                             );
                         })}
+                        {/* eslint-enable react/no-array-index-key */}
                     </div>
                 </div>
             </div>

@@ -40,6 +40,8 @@ body {
         }
         z-index: -1;
         pointer-events: none;
+        will-change: transform;
+        content-visibility: auto;
     }
 }
 

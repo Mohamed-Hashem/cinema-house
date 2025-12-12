@@ -64,7 +64,8 @@ export const useApi = (apiFunction, options = {}) => {
                 abortControllerRef.current.abort();
             }
         };
-    }, [immediate, ...deps]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [immediate, execute, ...deps]);
 
     const refetch = useCallback((...args) => execute(...args), [execute]);
 
@@ -78,7 +79,7 @@ export const useApi = (apiFunction, options = {}) => {
  * @returns {Object} - { data, loading, error, loadMore, hasMore, reset }
  */
 export const usePaginatedApi = (apiFunction, options = {}) => {
-    const { initialPage = 1, pageSize = 20, mediaType } = options;
+    const { initialPage = 1, pageSize: _pageSize = 20, mediaType } = options;
 
     const [data, setData] = useState([]);
     const [page, setPage] = useState(initialPage);
