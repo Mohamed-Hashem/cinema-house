@@ -1,5 +1,5 @@
 {
-    "name": "cinema-house-frontend",
+    "name": "cinema-house",
     "version": "2.0.0",
     "description": "Cinema House - A modern React-based movie discovery application with TMDB API integration. Features include browsing movies, TV series, actors, authentication, and responsive design.",
     "private": true,
@@ -73,7 +73,7 @@
         ]
     },
     "devDependencies": {
-        "eslint": "^7.11.0",
+        "eslint": "^8.57.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "prettier": "^3.7.4"

@@ -102,7 +102,7 @@ export const getMediaType_Iframe = (id, mediaType) => {
     };
 };
 
-export const fetchPosters = (mediaType, id, dataType) => {
+export const fetchPosters = (mediaType, id, _dataType) => {
     return async (dispatch) => {
         try {
             const response = await tmdbService.getImages(mediaType, id);
@@ -117,7 +117,7 @@ export const fetchPosters = (mediaType, id, dataType) => {
     };
 };
 
-export const fetchActors = (mediaType, id, dataType) => {
+export const fetchActors = (mediaType, id, _dataType) => {
     return async (dispatch) => {
         try {
             const response = await tmdbService.getCredits(mediaType, id);
@@ -132,7 +132,7 @@ export const fetchActors = (mediaType, id, dataType) => {
     };
 };
 
-export const fetchSimilar = (mediaType, id, dataType) => {
+export const fetchSimilar = (mediaType, id, _dataType) => {
     return async (dispatch) => {
         try {
             const response = await tmdbService.getSimilar(mediaType, id);
@@ -147,7 +147,7 @@ export const fetchSimilar = (mediaType, id, dataType) => {
     };
 };
 
-export const fetchRecommendations = (mediaType, id, dataType) => {
+export const fetchRecommendations = (mediaType, id, _dataType) => {
     return async (dispatch) => {
         try {
             const response = await tmdbService.getRecommendations(mediaType, id);

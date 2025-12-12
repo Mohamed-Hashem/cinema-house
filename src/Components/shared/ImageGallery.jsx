@@ -132,8 +132,11 @@ const ImageGallery = ({
     );
 
     const items = useMemo(
-        () => validImages.map((img, index) => <PosterItem key={index} img={img} index={index} />),
-        [validImages, PosterItem]
+        () =>
+            validImages.map((img, index) => (
+                <PosterItem key={img.file_path || index} img={img} index={index} />
+            )),
+        [validImages]
     );
 
     if (!validImages.length) return null;

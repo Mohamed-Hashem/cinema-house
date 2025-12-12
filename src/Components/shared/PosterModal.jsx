@@ -29,7 +29,7 @@ const PosterModal = ({ isOpen, images, currentIndex, onClose, title, getImageUrl
     const items = useMemo(
         () =>
             images?.map((img, index) => (
-                <div key={index} style={styles.slideContainer}>
+                <div key={img.file_path || `slide-${index}`} style={styles.slideContainer}>
                     <img
                         src={getImageUrl(img.file_path, true)}
                         alt={`${title} - ${index + 1}`}

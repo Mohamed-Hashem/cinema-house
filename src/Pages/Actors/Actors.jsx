@@ -34,7 +34,7 @@ class Actors extends Component {
         }
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(_prevProps, _prevState) {
         if (this.loadMoreRef && !this.observer) {
             this.setupInfiniteScroll();
         }

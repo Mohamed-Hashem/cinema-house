@@ -15,7 +15,10 @@ const SkeletonCard = memo(({ count = 1 }) => {
     return (
         <>
             {[...Array(count)].map((_, i) => (
-                <div key={i} className="col-xl-2 col-lg-3 col-md-4 col-sm-6 my-2 card card-body">
+                <div
+                    key={`skeleton-${i}`}
+                    className="col-xl-2 col-lg-3 col-md-4 col-sm-6 my-2 card card-body"
+                >
                     <div className="text-center position-relative mb-2">
                         <div className="captionLayer overflow-hidden mb-2 skeleton-pulse"></div>
                         <b>&nbsp;</b>

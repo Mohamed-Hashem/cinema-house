@@ -36,7 +36,7 @@ const Actor = memo(({ actor, goToActorsAbout, index = 0 }) => {
                 <div className="captionLayer overflow-hidden mb-2">
                     <img
                         src={imageSrc}
-                        alt={`${displayName} photo`}
+                        alt={displayName}
                         width="154"
                         height="231"
                         loading={index < 6 ? "eager" : "lazy"}
