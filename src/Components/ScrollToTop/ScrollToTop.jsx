@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, memo, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import { CircleArrowUpIcon } from "../shared";
 
 // Throttle utility function
 const throttle = (func, limit) => {
@@ -15,6 +17,20 @@ const throttle = (func, limit) => {
 const ScrollToTop = memo(() => {
     const [isVisible, setIsVisible] = useState(false);
     const throttledToggleRef = useRef(null);
+    const location = useLocation();
+    const prevPathRef = useRef(location.pathname);
+
+    // Scroll to top on route change
+    useEffect(() => {
+        // Only scroll if path actually changed (not just query params)
+        if (prevPathRef.current !== location.pathname) {
+            // Use requestAnimationFrame for smoother scroll
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, behavior: "instant" });
+            });
+            prevPathRef.current = location.pathname;
+        }
+    }, [location.pathname]);
 
     // Memoized scroll handler
     const toggleVisibility = useCallback(() => {
@@ -26,7 +42,6 @@ const ScrollToTop = memo(() => {
     }, []);
 
     useEffect(() => {
-        // Create throttled version (150ms throttle)
         throttledToggleRef.current = throttle(toggleVisibility, 150);
 
         document.addEventListener("scroll", throttledToggleRef.current, { passive: true });
@@ -46,8 +61,8 @@ const ScrollToTop = memo(() => {
     return (
         <div className="back-to-top show-back-to-top">
             {isVisible && (
-                <div className="top" onClick={scrollToTop}>
-                    <i className="fas fa-arrow-circle-up"></i>
+                <div className="top" onClick={scrollToTop} role="button" aria-label="Scroll to top">
+                    <CircleArrowUpIcon size={40} />
                 </div>
             )}
         </div>

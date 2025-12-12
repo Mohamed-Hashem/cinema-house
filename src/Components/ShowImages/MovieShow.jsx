@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import AliceCarousel from "react-alice-carousel";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPosters } from "./../../Redux/Actions/Actions";
-
-const handleDragStart = (e) => e.preventDefault();
+import { getBackdropUrl } from "../../utils/imageUtils";
+import { ImageGallery } from "../shared";
 
 const MovieShow = ({ poster }) => {
     const dispatch = useDispatch();
@@ -19,66 +18,19 @@ const MovieShow = ({ poster }) => {
         return () => {
             setLoading(false);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [poster?.id]);
+    }, [poster?.id, dispatch]);
 
-    // Return null if poster is not defined
-    if (!poster?.id) return null;
+    if (!poster?.id || !loading || !allPosters?.length) return null;
 
-    const items = React.Children.toArray(
-        allPosters?.map((img) => {
-            return (
-                <div className="itemHover card card-body">
-                    <div className="captionLayer overflow-hidden carouselItem">
-                        <img
-                            src={`https://image.tmdb.org/t/p/original${img.file_path}`}
-                            width="100%"
-                            height="300"
-                            className="carouselItem__img"
-                            alt={poster.name ? poster.name : poster.title}
-                            onDragStart={handleDragStart}
-                        />
-                    </div>
-                </div>
-            );
-        })
+    return (
+        <ImageGallery
+            images={allPosters}
+            title={poster.name || poster.title}
+            getImageUrl={getBackdropUrl}
+            aspectRatio="16/9"
+            itemsPerView={{ 0: 1, 576: 2, 992: 3, 1400: 4 }}
+        />
     );
-
-    const responsive = {
-        0: {
-            items: 1,
-        },
-        512: {
-            items: 3,
-        },
-        1024: {
-            items: 5,
-        },
-    };
-
-    return loading && allPosters.length > 0 ? (
-        <>
-            <div className="w-100 line my-5"></div>
-
-            <div className="item text-center my-3">
-                <h3>
-                    Posters For{" "}
-                    <b className="text-info">{poster.name ? poster.name : poster.title} </b>
-                </h3>
-            </div>
-
-            <AliceCarousel
-                autoPlay
-                responsive={responsive}
-                infinite
-                autoPlayInterval={2000}
-                disableDotsControls
-                disableButtonsControls
-                mouseTracking
-                items={items}
-            />
-        </>
-    ) : null;
 };
 
 export default MovieShow;

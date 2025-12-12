@@ -1,11 +1,5 @@
 import { useCallback, useRef } from "react";
 
-/**
- * Custom hook for throttling function calls
- * @param {Function} callback - The function to throttle
- * @param {number} delay - Minimum time between calls in milliseconds
- * @returns {Function} - Throttled function
- */
 export const useThrottle = (callback, delay = 200) => {
     const lastRan = useRef(Date.now());
     const timeoutRef = useRef(null);
@@ -19,7 +13,6 @@ export const useThrottle = (callback, delay = 200) => {
                 callback(...args);
                 lastRan.current = now;
             } else {
-                // Schedule for the remaining time
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
                 }
@@ -33,12 +26,6 @@ export const useThrottle = (callback, delay = 200) => {
     );
 };
 
-/**
- * Throttle function (non-hook version)
- * @param {Function} func - Function to throttle
- * @param {number} limit - Time limit in milliseconds
- * @returns {Function} - Throttled function
- */
 export const throttle = (func, limit = 200) => {
     let inThrottle;
     return function (...args) {

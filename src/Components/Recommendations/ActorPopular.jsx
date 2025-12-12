@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
+import { getProfileUrl } from "../../utils/imageUtils";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
-const PersonPopular = ({ actor, goToPersonAbout }) => {
+const ActorPopular = ({ actor, goToActorAbout }) => {
     const [credits, setCredits] = useState([]);
     const [loading, setLoading] = useState(false);
     const isMountedRef = useRef(true);
@@ -21,7 +22,7 @@ const PersonPopular = ({ actor, goToPersonAbout }) => {
                 setCredits(res.data.results);
             }
         } catch (err) {
-            console.error("Error fetching popular people:", err);
+            console.error("Error fetching popular actors:", err);
             if (isMountedRef.current) {
                 setCredits([]);
             }
@@ -39,33 +40,37 @@ const PersonPopular = ({ actor, goToPersonAbout }) => {
         };
     }, [actor, fetchImages]);
 
-    // Return null if actor is not defined
-    if (!actor) return null;
-
-    const items = React.Children.toArray(
-        credits?.map((poster) => {
-            return poster.profile_path ? (
-                <div className="item card card-body" onClick={() => goToPersonAbout(poster)}>
-                    <div className="text-center position-relative">
-                        <div className="captionLayer overflow-hidden mb-2  carouselItem">
-                            <img
-                                src={`https://image.tmdb.org/t/p/original${poster.profile_path}`}
-                                width="100%"
-                                height="350"
-                                className="carouselItem__img"
-                                alt={actor.name}
-                                onDragStart={handleDragStart}
-                            />
-                            <div className="item-layer position-absolute w-100 h-100"></div>
+    const items = useMemo(
+        () =>
+            credits?.map((poster) =>
+                poster.profile_path ? (
+                    <div className="item card card-body" onClick={() => goToActorAbout(poster)}>
+                        )
+                        <div className="text-center position-relative">
+                            <div className="captionLayer overflow-hidden mb-2  carouselItem">
+                                <img
+                                    src={getProfileUrl(poster.profile_path)}
+                                    width="185"
+                                    height="278"
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="carouselItem__img"
+                                    alt={actor.name}
+                                    onDragStart={handleDragStart}
+                                />
+                                <div className="item-layer position-absolute w-100 h-100"></div>
+                            </div>
+                            <b>
+                                {poster.title} {poster.name}
+                            </b>
                         </div>
-                        <b>
-                            {poster.title} {poster.name}
-                        </b>
                     </div>
-                </div>
-            ) : null;
-        })
+                ) : null
+            ) ?? [],
+        [credits, actor?.name, goToActorAbout]
     );
+
+    if (!actor || !loading || !items.length) return null;
 
     const responsive = {
         0: {
@@ -105,4 +110,4 @@ const PersonPopular = ({ actor, goToPersonAbout }) => {
     ) : null;
 };
 
-export default PersonPopular;
+export default ActorPopular;

@@ -6,11 +6,15 @@ export default class SolidNavbar extends Component {
     render() {
         return (
             <>
-                <nav className="navbar navbar-expand-lg fixed-top navbar-dark pb-4 pt-3">
+                <nav
+                    className="navbar navbar-expand-lg fixed-top navbar-dark pb-4 pt-3"
+                    role="navigation"
+                    aria-label="Main navigation"
+                >
                     <div className="container-fluid">
-                        <NavLink className="navbar-brand" to="/home" title="cinema house">
-                            <img src={img} alt="cinema house" title="cinema house" />
-                            cinema house
+                        <NavLink className="navbar-brand" to="/home">
+                            <img src={img} alt="" aria-hidden="true" />
+                            Cinema House
                         </NavLink>
 
                         <button
@@ -28,12 +32,12 @@ export default class SolidNavbar extends Component {
                         <div className="collapse navbar-collapse" id="navbarSupportedContent">
                             <ul className="nav navbar-nav ml-auto">
                                 <li className="nav-item">
-                                    <NavLink className="nav-link" to="/login" title="Login">
+                                    <NavLink className="nav-link" to="/login">
                                         Login
                                     </NavLink>
                                 </li>
                                 <li className="nav-item">
-                                    <NavLink className="nav-link" to="/register" title="Register">
+                                    <NavLink className="nav-link" to="/register">
                                         Register
                                     </NavLink>
                                 </li>

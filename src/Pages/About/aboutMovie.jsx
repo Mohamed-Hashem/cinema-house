@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { Component } from "react";
 import { LoadingSpinner } from "../../Components/shared";
+import { getPosterUrl } from "../../utils/imageUtils";
 import MovieSimilar from "../../Components/Recommendations/MovieSimilar";
 import MovieActors from "./../../Components/Actors/MovieActors";
 import MovieRecommendations from "./../../Components/Recommendations/MovieRecommendations";
@@ -65,7 +66,7 @@ class aboutMovie extends Component {
         this.isLoading = false;
     }
 
-    goToPersonAbout = (actor) => {
+    goToActorAbout = (actor) => {
         window.scrollTo(0, 0);
         this.props.history.push(`/actors/${actor.id}`, actor);
     };
@@ -75,7 +76,7 @@ class aboutMovie extends Component {
         this.props.history.push(`/movies/${movie.id}`, movie);
     };
 
-    goToTvAbout = (series) => {
+    goToSeriesAbout = (series) => {
         window.scrollTo(0, 0);
         this.props.history.push(`/series/${series.id}`, series);
     };
@@ -109,7 +110,10 @@ class aboutMovie extends Component {
                                     <div className="text-center position-relative mb-2">
                                         <div className="overflow-hidden mb-3">
                                             <img
-                                                src={`https://image.tmdb.org/t/p/original/${this.props.movieDetails.poster_path}`}
+                                                src={getPosterUrl(
+                                                    this.props.movieDetails.poster_path,
+                                                    true
+                                                )}
                                                 className="w-100 h-100"
                                                 alt={
                                                     this.props.movieDetails.title !== "undefined"
@@ -137,7 +141,9 @@ class aboutMovie extends Component {
                                             }`}
                                         >
                                             {this.props.movieDetails.poster_path !== null
-                                                ? this.props.movieDetails.vote_average
+                                                ? Number(
+                                                      this.props.movieDetails.vote_average
+                                                  ).toFixed(1)
                                                 : ""}
                                         </span>
                                     </div>
@@ -186,19 +192,18 @@ class aboutMovie extends Component {
                                             <tr>
                                                 <th>Genres</th>
                                                 <td>
-                                                    {React.Children.toArray(
-                                                        this.props.movieDetails.genres
-                                                            .slice(0, 2)
-                                                            .map((genre) => {
-                                                                return (
-                                                                    <span
-                                                                        className="genres"
-                                                                        key={Math.random()}
-                                                                    >
+                                                    {this.props.movieDetails.genres?.length > 0 ? (
+                                                        React.Children.toArray(
+                                                            this.props.movieDetails.genres
+                                                                .slice(0, 2)
+                                                                .map((genre) => (
+                                                                    <span className="genres">
                                                                         {genre.name}
                                                                     </span>
-                                                                );
-                                                            })
+                                                                ))
+                                                        )
+                                                    ) : (
+                                                        <span>N/A</span>
                                                     )}
                                                 </td>
                                             </tr>
@@ -230,7 +235,12 @@ class aboutMovie extends Component {
                                             </tr>
                                             <tr>
                                                 <th>Vote Average</th>
-                                                <td> {this.props.movieDetails.vote_average}</td>
+                                                <td>
+                                                    {" "}
+                                                    {Number(
+                                                        this.props.movieDetails.vote_average
+                                                    ).toFixed(1)}
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <th>Vote Count</th>
@@ -309,7 +319,7 @@ class aboutMovie extends Component {
 
                         <MovieActors
                             actor={this.props.movieDetails}
-                            goToPersonAbout={this.goToPersonAbout}
+                            goToActorAbout={this.goToActorAbout}
                         />
 
                         <MovieSimilar

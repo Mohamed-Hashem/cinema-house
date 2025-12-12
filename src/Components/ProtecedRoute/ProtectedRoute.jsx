@@ -1,30 +1,43 @@
 import jwt_decode from "jwt-decode";
-import React, { Component } from "react";
+import React, { useMemo, memo } from "react";
 import { Redirect, Route } from "react-router-dom";
 
-export default class ProtectedRoute extends Component {
-    isTokenValid = (token) => {
-        try {
-            const decoded = jwt_decode(token);
-            // Check if token is expired
-            if (decoded.exp * 1000 < Date.now()) {
-                localStorage.removeItem("token");
-                return false;
-            }
-            return true;
-        } catch (error) {
+/**
+ * Validates if a JWT token is valid and not expired
+ */
+const isTokenValid = (token) => {
+    if (!token) return false;
+
+    try {
+        const decoded = jwt_decode(token);
+        if (decoded.exp * 1000 < Date.now()) {
             localStorage.removeItem("token");
             return false;
         }
-    };
+        return true;
+    } catch (error) {
+        localStorage.removeItem("token");
+        return false;
+    }
+};
 
-    render() {
+/**
+ * Protected Route component - redirects to login if not authenticated
+ * Memoized for better performance
+ */
+const ProtectedRoute = memo(({ component: Component, path, exact, ...rest }) => {
+    const isAuthenticated = useMemo(() => {
         const token = localStorage.getItem("token");
+        return isTokenValid(token);
+    }, []);
 
-        if (token && this.isTokenValid(token)) {
-            return <Route path={this.props.path} component={this.props.component} />;
-        }
-
+    if (!isAuthenticated) {
         return <Redirect to="/login" />;
     }
-}
+
+    return <Route path={path} exact={exact} component={Component} {...rest} />;
+});
+
+ProtectedRoute.displayName = "ProtectedRoute";
+
+export default ProtectedRoute;

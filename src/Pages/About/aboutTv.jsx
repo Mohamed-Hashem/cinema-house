@@ -1,10 +1,11 @@
 import axios from "axios";
 import React, { Component } from "react";
 import { LoadingSpinner } from "../../Components/shared";
-import TvSimilar from "../../Components/Recommendations/TvSimilar";
-import TvActors from "./../../Components/Actors/TvActors";
-import TvRecommendations from "./../../Components/Recommendations/TvRecommendations";
-import TvShow from "./../../Components/ShowImages/TvShow";
+import { getPosterUrl } from "../../utils/imageUtils";
+import SeriesSimilar from "../../Components/Recommendations/SeriesSimilar";
+import SeriesActors from "./../../Components/Actors/SeriesActors";
+import SeriesRecommendations from "./../../Components/Recommendations/SeriesRecommendations";
+import SeriesShow from "./../../Components/ShowImages/SeriesShow";
 import Seasons from "./../../Components/Tv Seasons/Seasons";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
@@ -17,21 +18,18 @@ export default class aboutTv extends Component {
         super(props);
         this.state = {
             iFrame: null,
-            tvShowDetails: null,
+            seriesDetails: null,
             series: null,
         };
         window.scrollTo(0, 0);
     }
 
     getSeriesData = () => {
-        // Try to get from URL params first (most reliable)
         const id = this.props.match?.params?.id;
         if (id && !isNaN(id)) {
-            // Check if we have full data in location state
             if (this.props.location.state?.id) {
                 return this.props.location.state;
             }
-            // Fallback to localStorage
             const stored = localStorage.getItem("series");
             if (stored) {
                 try {
@@ -43,13 +41,12 @@ export default class aboutTv extends Component {
                     // ignore parse error
                 }
             }
-            // Return just the ID to fetch data
             return { id: parseInt(id, 10) };
         }
         return null;
     };
 
-    TvShowDetails = async (series) => {
+    SeriesDetails = async (series) => {
         if (!series?.id) return;
 
         let currentSeries;
@@ -70,14 +67,14 @@ export default class aboutTv extends Component {
             )
             .then((res) => {
                 if (this._isMounted) {
-                    this.setState({ tvShowDetails: res.data });
+                    this.setState({ seriesDetails: res.data });
                     this.isLoading = true;
                 }
             })
             .catch((err) => {
-                console.error("Error fetching TV show details:", err);
+                console.error("Error fetching series details:", err);
                 if (this._isMounted) {
-                    this.setState({ tvShowDetails: null });
+                    this.setState({ seriesDetails: null });
                 }
             });
     };
@@ -107,7 +104,7 @@ export default class aboutTv extends Component {
 
         const seriesData = this.getSeriesData();
         if (seriesData) {
-            this.TvShowDetails(seriesData);
+            this.SeriesDetails(seriesData);
             this.IFrame(seriesData);
         }
     }
@@ -118,31 +115,31 @@ export default class aboutTv extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Check if URL parameter changed
         if (this.props.match?.params?.id !== prevProps.match?.params?.id) {
             const seriesData = this.getSeriesData();
             if (seriesData) {
-                this.TvShowDetails(seriesData);
+                this.SeriesDetails(seriesData);
                 this.IFrame(seriesData);
             }
         }
     }
 
-    goToTvAbout = (item) => {
+    goToSeriesAbout = (item) => {
         window.scrollTo(0, 0);
         this.props.history.push(`/series/${item.id}`, item);
     };
 
-    goToPersonAbout = (actor) => {
+    goToActorAbout = (actor) => {
         window.scrollTo(0, 0);
         this.props.history.push(`/actors/${actor.id}`, actor);
     };
 
     goToSeason = (season) => {
         window.scrollTo(0, 0);
+        const seriesId = this.state.series?.id || this.props.match?.params?.id;
 
         this.props.history.push({
-            pathname: `/season/${season.season_number}`,
+            pathname: `/series/${seriesId}/season/${season.season_number}`,
             state: { ...this.state.series, season_number: season.season_number },
         });
     };
@@ -176,34 +173,37 @@ export default class aboutTv extends Component {
                                     <div className="text-center position-relative mb-2">
                                         <div className="mb-3">
                                             <img
-                                                src={`https://image.tmdb.org/t/p/original/${this.state.tvShowDetails.poster_path}`}
+                                                src={getPosterUrl(
+                                                    this.state.seriesDetails.poster_path,
+                                                    true
+                                                )}
                                                 className="w-100 h-100"
                                                 alt={
-                                                    this.state.tvShowDetails.title !== "undefined"
-                                                        ? this.state.tvShowDetails.title
-                                                        : this.state.tvShowDetails.name
+                                                    this.state.seriesDetails.title !== "undefined"
+                                                        ? this.state.seriesDetails.title
+                                                        : this.state.seriesDetails.name
                                                 }
                                                 title={
-                                                    this.state.tvShowDetails.title === "undefined"
-                                                        ? this.state.tvShowDetails.name
-                                                        : this.state.tvShowDetails.title
+                                                    this.state.seriesDetails.title === "undefined"
+                                                        ? this.state.seriesDetails.name
+                                                        : this.state.seriesDetails.title
                                                 }
                                             />
                                         </div>
 
                                         <b>
-                                            {this.state.tvShowDetails.title}{" "}
-                                            {this.state.tvShowDetails.name}
+                                            {this.state.seriesDetails.title}{" "}
+                                            {this.state.seriesDetails.name}
                                         </b>
                                         <span
                                             className={`${
-                                                this.state.tvShowDetails.vote_average >= 7
+                                                this.state.seriesDetails.vote_average >= 7
                                                     ? "vote vote1"
                                                     : "vote vote2"
                                             }`}
                                         >
-                                            {this.state.tvShowDetails.poster_path !== null
-                                                ? this.state.tvShowDetails.vote_average
+                                            {this.state.seriesDetails.poster_path !== null
+                                                ? this.state.seriesDetails.vote_average
                                                 : ""}
                                         </span>
                                     </div>
@@ -216,8 +216,8 @@ export default class aboutTv extends Component {
                                                 <th style={{ width: "200px" }}>Name </th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.tvShowDetails.title}
-                                                    {this.state.tvShowDetails.name}
+                                                    {this.state.seriesDetails.title}
+                                                    {this.state.seriesDetails.name}
                                                 </td>
                                             </tr>
                                         </thead>
@@ -225,22 +225,22 @@ export default class aboutTv extends Component {
                                         <tbody>
                                             <tr>
                                                 <th>tagline</th>
-                                                <td> {this.state.tvShowDetails.tagline}</td>
+                                                <td> {this.state.seriesDetails.tagline}</td>
                                             </tr>
                                             <tr>
                                                 <th>Homepage To Site</th>
                                                 <td>
                                                     <a
                                                         href={
-                                                            this.state.tvShowDetails.homepage
-                                                                ? this.state.tvShowDetails.homepage
+                                                            this.state.seriesDetails.homepage
+                                                                ? this.state.seriesDetails.homepage
                                                                 : `/about`
                                                         }
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         className="text-decoration-none font-weight-bold"
                                                     >
-                                                        {this.state.tvShowDetails.homepage
+                                                        {this.state.seriesDetails.homepage
                                                             ? "Homepage"
                                                             : "Not Supported"}{" "}
                                                     </a>{" "}
@@ -249,14 +249,18 @@ export default class aboutTv extends Component {
                                             <tr>
                                                 <th>Genres</th>
                                                 <td>
-                                                    {React.Children.toArray(
-                                                        this.state.tvShowDetails.genres
-                                                            .slice(0, 2)
-                                                            .map((genre) => (
-                                                                <span className="genres">
-                                                                    {genre.name}
-                                                                </span>
-                                                            ))
+                                                    {this.state.seriesDetails.genres?.length > 0 ? (
+                                                        React.Children.toArray(
+                                                            this.state.seriesDetails.genres
+                                                                .slice(0, 2)
+                                                                .map((genre) => (
+                                                                    <span className="genres">
+                                                                        {genre.name}
+                                                                    </span>
+                                                                ))
+                                                        )
+                                                    ) : (
+                                                        <span>N/A</span>
                                                     )}
                                                 </td>
                                             </tr>
@@ -265,21 +269,21 @@ export default class aboutTv extends Component {
                                                 <th>Language</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.tvShowDetails.original_language}
+                                                    {this.state.seriesDetails.original_language}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th>First air date</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.tvShowDetails.first_air_date != null
-                                                        ? this.state.tvShowDetails.first_air_date
+                                                    {this.state.seriesDetails.first_air_date != null
+                                                        ? this.state.seriesDetails.first_air_date
                                                         : "Not Release"}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th>Popularity</th>
-                                                <td> {this.state.tvShowDetails.popularity}</td>
+                                                <td> {this.state.seriesDetails.popularity}</td>
                                             </tr>
                                             <tr>
                                                 <th>Media Type</th>
@@ -287,17 +291,22 @@ export default class aboutTv extends Component {
                                             </tr>
                                             <tr>
                                                 <th>Vote Average</th>
-                                                <td> {this.state.tvShowDetails.vote_average}</td>
+                                                <td>
+                                                    {" "}
+                                                    {Number(
+                                                        this.state.seriesDetails.vote_average
+                                                    ).toFixed(1)}
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <th>Vote Count</th>
-                                                <td> {this.state.tvShowDetails.vote_count}</td>
+                                                <td> {this.state.seriesDetails.vote_count}</td>
                                             </tr>
                                             <tr>
                                                 <th>Networks</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.tvShowDetails.networks[0].name}
+                                                    {this.state.seriesDetails.networks[0].name}
                                                 </td>
                                             </tr>
 
@@ -305,7 +314,7 @@ export default class aboutTv extends Component {
                                                 <th>Number of Seasons</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.tvShowDetails.number_of_seasons}
+                                                    {this.state.seriesDetails.number_of_seasons}
                                                 </td>
                                             </tr>
 
@@ -313,7 +322,7 @@ export default class aboutTv extends Component {
                                                 <th>Number of Episodes</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.tvShowDetails.number_of_episodes}
+                                                    {this.state.seriesDetails.number_of_episodes}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -321,7 +330,7 @@ export default class aboutTv extends Component {
                                         <tfoot>
                                             <tr>
                                                 <th>overview</th>
-                                                <td> {this.state.tvShowDetails.overview}</td>
+                                                <td> {this.state.seriesDetails.overview}</td>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -331,9 +340,9 @@ export default class aboutTv extends Component {
                                             className="btn btn-info mr-3"
                                             onClick={() =>
                                                 this.getDownload(
-                                                    this.state.tvShowDetails.title
-                                                        ? this.state.tvShowDetails.title
-                                                        : this.state.tvShowDetails.name
+                                                    this.state.seriesDetails.title
+                                                        ? this.state.seriesDetails.title
+                                                        : this.state.seriesDetails.name
                                                 )
                                             }
                                         >
@@ -353,9 +362,9 @@ export default class aboutTv extends Component {
                                             <h1 className="text-center mb-4">
                                                 {" "}
                                                 Trial For{" "}
-                                                {this.state.tvShowDetails.name
-                                                    ? this.state.tvShowDetails.name
-                                                    : this.state.tvShowDetails.title}
+                                                {this.state.seriesDetails.name
+                                                    ? this.state.seriesDetails.name
+                                                    : this.state.seriesDetails.title}
                                             </h1>
                                             <div>
                                                 <iframe
@@ -376,23 +385,23 @@ export default class aboutTv extends Component {
                             <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
                         )}
 
-                        <TvShow poster={this.state.tvShowDetails} />
+                        <SeriesShow poster={this.state.seriesDetails} />
 
-                        <TvActors
-                            actors={this.state.tvShowDetails}
-                            goToPersonAbout={this.goToPersonAbout}
+                        <SeriesActors
+                            actors={this.state.seriesDetails}
+                            goToActorAbout={this.goToActorAbout}
                         />
 
-                        <Seasons Season={this.state.tvShowDetails} goToSeason={this.goToSeason} />
+                        <Seasons Season={this.state.seriesDetails} goToSeason={this.goToSeason} />
 
-                        <TvSimilar
-                            series={this.state.tvShowDetails}
-                            goToTvAbout={this.goToTvAbout}
+                        <SeriesSimilar
+                            series={this.state.seriesDetails}
+                            goToSeriesAbout={this.goToSeriesAbout}
                         />
 
-                        <TvRecommendations
-                            series={this.state.tvShowDetails}
-                            goToTvAbout={this.goToTvAbout}
+                        <SeriesRecommendations
+                            series={this.state.seriesDetails}
+                            goToSeriesAbout={this.goToSeriesAbout}
                         />
                     </div>
                 </section>

@@ -1,20 +1,24 @@
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-const apiKeyAuth = async (req, res, next) => {
-  const apiKey = req.header("X-api-key");
-  if (!apiKey) return res.status(401).json({ message: "NO api key provided" });
-
-  const user = await User.findOne({ apiKey });
-  if (!user) return res.status(403).json({ message: "Invalid API KEY" });
-
-  if (user.credits <= 0) {
-    return res.status(402).json({ message: "Insufficeint Credits, Buy now" });
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.header("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "No token provided" });
   }
 
-  user.credits -= 10;
-  await user.save();
+  try {
+    const token = authHeader.slice(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password").lean();
 
-  req.user = user;
-  next();
+    if (!user) return res.status(401).json({ message: "User not found" });
+
+    req.user = user;
+    next();
+  } catch {
+    return res.status(401).json({ message: "Invalid token" });
+  }
 };
-module.exports = apiKeyAuth;
+
+module.exports = { verifyToken };

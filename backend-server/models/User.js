@@ -1,13 +1,38 @@
 const mongoose = require("mongoose");
-const { v4: uuidv4 } = require("uuid");
 
-const userSchema = new mongoose.Schema({
-  first_name: String,
-  last_name: String,
-  age: Number,
-  email: { type: String, unique: true },
-  password: String,
-  apiKey: { type: String, default: uuidv4 },
-});
+const userSchema = new mongoose.Schema(
+  {
+    first_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    last_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    age: {
+      type: Number,
+      required: true,
+      min: 18,
+      max: 120,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 module.exports = mongoose.model("User", userSchema);

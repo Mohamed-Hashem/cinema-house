@@ -1,11 +1,14 @@
 import jwt_decode from "jwt-decode";
-import React, { useMemo, memo } from "react";
+import React, { useMemo, memo, useState, useCallback, useEffect, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
 import img from "./../../images/movie.svg";
 import "./Navbar.scss";
 import SearchInput from "./SearchInput";
 
 const Navbar = memo(() => {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
     // Memoize user decoding - only recompute if token changes
     const user = useMemo(() => {
         const token = localStorage.getItem("token");
@@ -20,11 +23,36 @@ const Navbar = memo(() => {
         }
     }, []);
 
+    const toggleDropdown = useCallback(() => {
+        setIsDropdownOpen((prev) => !prev);
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        if (isDropdownOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isDropdownOpen]);
+
     return (
-        <nav className="navbar navbar-expand-lg fixed-top navbar-dark pb-4 pt-3">
+        <nav
+            className="navbar navbar-expand-lg fixed-top navbar-dark pb-4 pt-3"
+            role="navigation"
+            aria-label="Main navigation"
+        >
             <div className="container-fluid">
-                <NavLink className="navbar-brand" to="/home" title="cinema house">
-                    <img src={img} alt="cinema house" title="cinema house" />
+                <NavLink className="navbar-brand" to="/home">
+                    <img src={img} alt="" aria-hidden="true" />
                     cinema house
                 </NavLink>
 
@@ -43,25 +71,25 @@ const Navbar = memo(() => {
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="nav navbar-nav mr-auto">
                         <li className="nav-item">
-                            <NavLink className="nav-link" to="/home" title="Home">
+                            <NavLink className="nav-link" to="/home">
                                 Home
                             </NavLink>
                         </li>
 
                         <li className="nav-item">
-                            <NavLink className="nav-link" to="/movies" title="Movies">
+                            <NavLink className="nav-link" to="/movies">
                                 Movies
                             </NavLink>
                         </li>
 
                         <li className="nav-item">
-                            <NavLink className="nav-link" to="/series" title="Tv Series">
+                            <NavLink className="nav-link" to="/series">
                                 Series
                             </NavLink>
                         </li>
 
                         <li className="nav-item">
-                            <NavLink className="nav-link" to="/actors" title="People">
+                            <NavLink className="nav-link" to="/actors">
                                 Actors
                             </NavLink>
                         </li>
@@ -69,25 +97,38 @@ const Navbar = memo(() => {
 
                     <SearchInput />
 
-                    <div className="btn-group dropdown" title="Setting">
+                    <div className="btn-group dropdown" ref={dropdownRef}>
                         <button
                             type="button"
                             className="btn bg-purple dropdown-toggle dropdown-toggle-split"
-                            data-toggle="dropdown"
+                            onClick={toggleDropdown}
                             aria-haspopup="true"
-                            aria-expanded="false"
-                        ></button>
+                            aria-expanded={isDropdownOpen}
+                            aria-label="User menu"
+                        >
+                            Menu
+                        </button>
 
-                        <div className="dropdown-menu my-2">
-                            <Link className="dropdown-item disabled" to="/setting" data-set="1">
-                                Setting
+                        <div className={`dropdown-menu my-2${isDropdownOpen ? " show" : ""}`}>
+                            <Link
+                                className="dropdown-item text-white"
+                                to="/profile"
+                                onClick={() => setIsDropdownOpen(false)}
+                            >
+                                Profile
                             </Link>
-                            <Link className="dropdown-item disabled" to="/setting" data-set="2">
-                                {user ? user.first_name : ""}
-                            </Link>
+                            {user && (
+                                <div className="dropdown-item disabled text-muted">
+                                    {user.first_name} {user.last_name}
+                                </div>
+                            )}
 
                             <div className="dropdown-divider"></div>
-                            <Link className="dropdown-item text-white" to="/logout" data-set="3">
+                            <Link
+                                className="dropdown-item text-white"
+                                to="/logout"
+                                onClick={() => setIsDropdownOpen(false)}
+                            >
                                 Logout
                             </Link>
                         </div>

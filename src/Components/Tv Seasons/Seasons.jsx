@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { getPosterUrl } from "../../utils/imageUtils";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
@@ -37,7 +38,6 @@ const Seasons = ({ Season, goToSeason }) => {
         };
     }, [Season?.id, fetchSessions]);
 
-    // Return null if Season is not defined
     if (!Season?.id) return null;
 
     return loading ? (
@@ -61,20 +61,14 @@ const Seasons = ({ Season, goToSeason }) => {
                                         <img
                                             src={`${
                                                 season.poster_path
-                                                    ? `https://image.tmdb.org/t/p/original${season.poster_path}`
-                                                    : `https://via.placeholder.com/245x380/1e2d55/fff?text=${season.name}`
+                                                    ? getPosterUrl(season.poster_path)
+                                                    : `https://via.placeholder.com/154x231/1e2d55/fff?text=${season.name}`
                                             } `}
-                                            className="w-100 h-100"
-                                            alt={
-                                                season.name === "undefined"
-                                                    ? season.name
-                                                    : season.name
-                                            }
-                                            name={
-                                                season.name === "undefined"
-                                                    ? season.name
-                                                    : season.name
-                                            }
+                                            width="154"
+                                            height="231"
+                                            loading="lazy"
+                                            decoding="async"
+                                            alt={season.name}
                                             onDragStart={handleDragStart}
                                         />
                                         <div className="item-layer position-absolute w-100 h-100"></div>

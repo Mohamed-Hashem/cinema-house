@@ -26,7 +26,6 @@ class Register extends Component {
         };
 
         this.Schema = {
-            // Joi Validation
             first_name: Joi.string().required(),
             last_name: Joi.string().required(),
             email: Joi.string().email().required(),
@@ -45,9 +44,7 @@ class Register extends Component {
     };
 
     Validation = async () => {
-        // Clone
         const errors = {};
-        // Edit
         const { error } = Joi.validate(this.User, this.Schema);
 
         if (error === null) {
@@ -55,8 +52,6 @@ class Register extends Component {
             return null;
         } else {
             for (const err of error.details) errors[err.path] = err.message;
-
-            // Set State
             this.setState({ errors });
         }
     };
@@ -74,8 +69,8 @@ class Register extends Component {
 
             if (!this._isMounted) return;
 
-            if (this.props.errorMessage === "success") {
-                toast.success("Created Successfully");
+            if (this.props.errorMessage && this.props.errorMessage.includes("success")) {
+                toast.success("Registration Successful");
 
                 this.setState({
                     errorMessage: this.props.errorMessage,
@@ -113,68 +108,128 @@ class Register extends Component {
             <section
                 className="d-flex justify-content-center align-items-center"
                 style={{ minHeight: "100vh", paddingTop: "100px" }}
+                aria-label="Registration section"
             >
                 <div className="container text-center" style={{ width: "35%" }}>
-                    <form onSubmit={this.sendData}>
-                        <input
-                            onChange={this.handleChange}
-                            type="text"
-                            name="first_name"
-                            className="form-control my-3"
-                            placeholder="First Name"
-                            autoFocus
-                        />
+                    <h1 className="mb-4">Register</h1>
+                    <form onSubmit={this.sendData} aria-label="Registration form">
+                        <div className="form-group">
+                            <label htmlFor="register-first-name" className="sr-only">
+                                First Name
+                            </label>
+                            <input
+                                id="register-first-name"
+                                onChange={this.handleChange}
+                                type="text"
+                                name="first_name"
+                                className="form-control my-3"
+                                placeholder="First Name"
+                                autoComplete="given-name"
+                                aria-describedby={
+                                    this.state.errors.first_name ? "first-name-error" : undefined
+                                }
+                            />
+                        </div>
                         {this.state.errors.first_name && (
-                            <div className="alert alert-danger">{this.state.errors.first_name}</div>
+                            <div id="first-name-error" className="alert alert-danger" role="alert">
+                                {this.state.errors.first_name}
+                            </div>
                         )}
 
-                        <input
-                            onChange={this.handleChange}
-                            type="text"
-                            name="last_name"
-                            className="form-control my-3"
-                            placeholder="Last Name"
-                        />
+                        <div className="form-group">
+                            <label htmlFor="register-last-name" className="sr-only">
+                                Last Name
+                            </label>
+                            <input
+                                id="register-last-name"
+                                onChange={this.handleChange}
+                                type="text"
+                                name="last_name"
+                                className="form-control my-3"
+                                placeholder="Last Name"
+                                autoComplete="family-name"
+                                aria-describedby={
+                                    this.state.errors.last_name ? "last-name-error" : undefined
+                                }
+                            />
+                        </div>
                         {this.state.errors.last_name && (
-                            <div className="alert alert-danger">{this.state.errors.last_name}</div>
+                            <div id="last-name-error" className="alert alert-danger" role="alert">
+                                {this.state.errors.last_name}
+                            </div>
                         )}
 
-                        <input
-                            onChange={this.handleChange}
-                            type="number"
-                            name="age"
-                            className="form-control my-3"
-                            placeholder="Age"
-                        />
+                        <div className="form-group">
+                            <label htmlFor="register-age" className="sr-only">
+                                Age
+                            </label>
+                            <input
+                                id="register-age"
+                                onChange={this.handleChange}
+                                type="number"
+                                name="age"
+                                className="form-control my-3"
+                                placeholder="Age"
+                                aria-describedby={this.state.errors.age ? "age-error" : undefined}
+                            />
+                        </div>
                         {this.state.errors.age && (
-                            <div className="alert alert-danger">{this.state.errors.age}</div>
+                            <div id="age-error" className="alert alert-danger" role="alert">
+                                {this.state.errors.age}
+                            </div>
                         )}
 
-                        <input
-                            onChange={this.handleChange}
-                            type="email"
-                            name="email"
-                            className="form-control my-3"
-                            placeholder="Email"
-                        />
+                        <div className="form-group">
+                            <label htmlFor="register-email" className="sr-only">
+                                Email
+                            </label>
+                            <input
+                                id="register-email"
+                                onChange={this.handleChange}
+                                type="email"
+                                name="email"
+                                className="form-control my-3"
+                                placeholder="Email"
+                                autoComplete="email"
+                                aria-describedby={
+                                    this.state.errors.email ? "email-error" : undefined
+                                }
+                            />
+                        </div>
                         {this.state.errors.email && (
-                            <div className="alert alert-danger">{this.state.errors.email}</div>
+                            <div id="email-error" className="alert alert-danger" role="alert">
+                                {this.state.errors.email}
+                            </div>
                         )}
 
-                        <input
-                            onChange={this.handleChange}
-                            type="password"
-                            name="password"
-                            className="form-control my-3"
-                            placeholder="Password"
-                        />
+                        <div className="form-group">
+                            <label htmlFor="register-password" className="sr-only">
+                                Password
+                            </label>
+                            <input
+                                id="register-password"
+                                onChange={this.handleChange}
+                                type="password"
+                                name="password"
+                                className="form-control my-3"
+                                placeholder="Password"
+                                autoComplete="new-password"
+                                aria-describedby={
+                                    this.state.errors.password ? "password-error" : undefined
+                                }
+                            />
+                        </div>
                         {this.state.errors.password && (
-                            <div className="alert alert-danger">{this.state.errors.password}</div>
+                            <div id="password-error" className="alert alert-danger" role="alert">
+                                {this.state.errors.password}
+                            </div>
                         )}
 
-                        <div className={this.state.status}>{this.state.errorMessage}</div>
+                        <div className={this.state.status} role="alert">
+                            {this.state.errorMessage}
+                        </div>
 
-                        <button className="btn btn-info w-50 my-3">
+                        <button type="submit" className="btn btn-info w-50 my-3">
                             {this.state.waiting ? "Waiting ... " : "Register"}
                         </button>
                     </form>

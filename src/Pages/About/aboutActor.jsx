@@ -1,14 +1,15 @@
 import axios from "axios";
 import React, { Component } from "react";
 import { LoadingSpinner } from "../../Components/shared";
-import PersonMovies from "./../../Components/Recommendations/PersonMovies";
-import PersonPopular from "./../../Components/Recommendations/PersonPopular";
-import PersonShow from "./../../Components/ShowImages/PersonShow";
-import PersonTvShow from "./../../Components/ShowImages/PersonTvShow";
+import { getProfileUrl } from "../../utils/imageUtils";
+import ActorMovies from "./../../Components/Recommendations/ActorMovies";
+import ActorPopular from "./../../Components/Recommendations/ActorPopular";
+import ActorShow from "./../../Components/ShowImages/ActorShow";
+import ActorSeries from "./../../Components/ShowImages/ActorSeries";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
-export default class aboutPerson extends Component {
+export default class aboutActor extends Component {
     isLoading = false;
     _isMounted = false;
 
@@ -16,13 +17,13 @@ export default class aboutPerson extends Component {
         super(props);
 
         this.state = {
-            personDetails: null,
+            actorDetails: null,
         };
 
         window.scrollTo(0, 0);
     }
 
-    PersonDetails = async (id) => {
+    ActorDetails = async (id) => {
         if (!id) return;
 
         this.isLoading = true;
@@ -31,13 +32,13 @@ export default class aboutPerson extends Component {
             .get(`https://api.themoviedb.org/3/person/${id}?api_key=${TMDB_API_KEY}`)
             .then((res) => {
                 if (this._isMounted) {
-                    this.setState({ personDetails: res.data });
+                    this.setState({ actorDetails: res.data });
                 }
             })
             .catch((err) => {
-                console.error("Error fetching person details:", err);
+                console.error("Error fetching actor details:", err);
                 if (this._isMounted) {
-                    this.setState({ personDetails: null });
+                    this.setState({ actorDetails: null });
                 }
             });
     };
@@ -45,7 +46,7 @@ export default class aboutPerson extends Component {
     componentDidMount() {
         this._isMounted = true;
         window.scrollTo(0, 0);
-        this.PersonDetails(this.props.match.params.id);
+        this.ActorDetails(this.props.match.params.id);
     }
 
     componentWillUnmount() {
@@ -55,10 +56,10 @@ export default class aboutPerson extends Component {
 
     componentDidUpdate(prevProps) {
         if (this.props.match.params.id !== prevProps.match.params.id)
-            this.PersonDetails(this.props.match.params.id);
+            this.ActorDetails(this.props.match.params.id);
     }
 
-    goToPersonAbout = (actor) => {
+    goToActorAbout = (actor) => {
         window.scrollTo(0, 0);
         this.props.history.push(`/actors/${actor.id}`, actor);
     };
@@ -68,9 +69,9 @@ export default class aboutPerson extends Component {
         this.props.history.push(`/movies/${movie.id}`, movie);
     };
 
-    goToTvAbout = (tvShow) => {
+    goToSeriesAbout = (series) => {
         window.scrollTo(0, 0);
-        this.props.history.push(`/series/${tvShow.id}`, tvShow);
+        this.props.history.push(`/series/${series.id}`, series);
     };
 
     render() {
@@ -84,24 +85,27 @@ export default class aboutPerson extends Component {
                                     <div className="text-center position-relative mb-2">
                                         <div className="overflow-hidden mb-3">
                                             <img
-                                                src={`https://image.tmdb.org/t/p/original/${this.state.personDetails.profile_path}`}
+                                                src={getProfileUrl(
+                                                    this.state.actorDetails.profile_path,
+                                                    true
+                                                )}
                                                 className="w-100 h-100"
                                                 alt={
-                                                    this.state.personDetails.title !== "undefined"
-                                                        ? this.state.personDetails.title
-                                                        : this.state.personDetails.name
+                                                    this.state.actorDetails.title !== "undefined"
+                                                        ? this.state.actorDetails.title
+                                                        : this.state.actorDetails.name
                                                 }
                                                 title={
-                                                    this.state.personDetails.title === "undefined"
-                                                        ? this.state.personDetails.name
-                                                        : this.state.personDetails.title
+                                                    this.state.actorDetails.title === "undefined"
+                                                        ? this.state.actorDetails.name
+                                                        : this.state.actorDetails.title
                                                 }
                                             />
                                         </div>
 
                                         <b>
-                                            {this.state.personDetails.title}{" "}
-                                            {this.state.personDetails.name}
+                                            {this.state.actorDetails.title}{" "}
+                                            {this.state.actorDetails.name}
                                         </b>
                                     </div>
                                 </div>
@@ -113,8 +117,8 @@ export default class aboutPerson extends Component {
                                                 <th style={{ width: "180px" }}>Name </th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.personDetails.title}
-                                                    {this.state.personDetails.name}
+                                                    {this.state.actorDetails.title}
+                                                    {this.state.actorDetails.name}
                                                 </td>
                                             </tr>
                                         </thead>
@@ -122,26 +126,26 @@ export default class aboutPerson extends Component {
                                         <tbody>
                                             <tr>
                                                 <th>Birthday</th>
-                                                <td>{this.state.personDetails.birthday} </td>
+                                                <td>{this.state.actorDetails.birthday} </td>
                                             </tr>
                                             <tr>
                                                 <th>Place of Birth</th>
-                                                <td>{this.state.personDetails.place_of_birth} </td>
+                                                <td>{this.state.actorDetails.place_of_birth} </td>
                                             </tr>
                                             <tr>
                                                 <th>Homepage To Site</th>
                                                 <td>
                                                     <a
                                                         href={
-                                                            this.state.personDetails.homepage
-                                                                ? this.state.personDetails.homepage
+                                                            this.state.actorDetails.homepage
+                                                                ? this.state.actorDetails.homepage
                                                                 : `/about`
                                                         }
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         className="text-decoration-none font-weight-bold"
                                                     >
-                                                        {this.state.personDetails.homepage
+                                                        {this.state.actorDetails.homepage
                                                             ? "Homepage"
                                                             : "Not Supported"}{" "}
                                                     </a>{" "}
@@ -151,7 +155,7 @@ export default class aboutPerson extends Component {
                                                 <th>deathday</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.personDetails.deathday
+                                                    {this.state.actorDetails.deathday
                                                         ? "Yes"
                                                         : "No"}
                                                 </td>
@@ -160,7 +164,7 @@ export default class aboutPerson extends Component {
                                                 <th>Gender</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.personDetails.gender === 2
+                                                    {this.state.actorDetails.gender === 2
                                                         ? "Male"
                                                         : "Female"}
                                                 </td>
@@ -169,12 +173,12 @@ export default class aboutPerson extends Component {
                                                 <th>Department</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.personDetails.known_for_department}
+                                                    {this.state.actorDetails.known_for_department}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th>Popularity</th>
-                                                <td> {this.state.personDetails.popularity}</td>
+                                                <td> {this.state.actorDetails.popularity}</td>
                                             </tr>
                                         </tbody>
 
@@ -183,7 +187,7 @@ export default class aboutPerson extends Component {
                                                 <th>Biography</th>
                                                 <td>
                                                     {" "}
-                                                    {this.state.personDetails.biography.substr(
+                                                    {this.state.actorDetails.biography.substr(
                                                         0,
                                                         250
                                                     )}
@@ -197,21 +201,21 @@ export default class aboutPerson extends Component {
                             <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
                         )}
 
-                        <PersonShow poster={this.state.personDetails} />
+                        <ActorShow poster={this.state.actorDetails} />
 
-                        <PersonMovies
-                            movie={this.state.personDetails}
+                        <ActorMovies
+                            movie={this.state.actorDetails}
                             goToMovieAbout={this.goToMovieAbout}
                         />
 
-                        <PersonTvShow
-                            series={this.state.personDetails}
-                            goToTvAbout={this.goToTvAbout}
+                        <ActorSeries
+                            series={this.state.actorDetails}
+                            goToSeriesAbout={this.goToSeriesAbout}
                         />
 
-                        <PersonPopular
-                            actor={this.state.personDetails}
-                            goToPersonAbout={this.goToPersonAbout}
+                        <ActorPopular
+                            actor={this.state.actorDetails}
+                            goToActorAbout={this.goToActorAbout}
                         />
                     </div>
                 </section>

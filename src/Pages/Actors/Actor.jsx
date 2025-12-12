@@ -1,34 +1,59 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useState } from "react";
 
-const PLACEHOLDER_IMAGE = "https://via.placeholder.com/468x700/1E2D55?Text=No+Image";
+const PLACEHOLDER_IMAGE = "https://via.placeholder.com/154x231/1E2D55?text=No+Photo";
 
-const Actor = memo(({ actor, goToActorsAbout, height = "250" }) => {
-    const style = height === "350" ? "col-xl-3 col-lg-4 col-md-6" : "col-xl-2 col-lg-3 col-md-4";
+const Actor = memo(({ actor, goToActorsAbout, index = 0 }) => {
+    const style = "col-xl-2 col-lg-3 col-md-4";
+    const displayName = actor.name || actor.title;
+    const [imageError, setImageError] = useState(false);
 
     const handleClick = useCallback(() => goToActorsAbout(actor), [goToActorsAbout, actor]);
+    const handleKeyDown = useCallback(
+        (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                goToActorsAbout(actor);
+            }
+        },
+        [goToActorsAbout, actor]
+    );
 
-    const imageSrc = actor.profile_path
-        ? `https://image.tmdb.org/t/p/w500/${actor.profile_path}`
-        : PLACEHOLDER_IMAGE;
+    const imageSrc =
+        actor.profile_path && !imageError
+            ? `https://image.tmdb.org/t/p/w154/${actor.profile_path}`
+            : PLACEHOLDER_IMAGE;
 
     return (
-        <div className={`item ${style} col-sm-6 my-2 card card-body`} onClick={handleClick}>
+        <article
+            className={`item ${style} col-sm-6 my-2 card card-body`}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-label={displayName}
+        >
             <div className="text-center position-relative mb-2">
                 <div className="captionLayer overflow-hidden mb-2">
                     <img
                         src={imageSrc}
-                        width="100%"
-                        height={height}
-                        alt={actor.name || actor.title}
-                        title={actor.name || actor.title}
-                        loading="lazy"
+                        alt={`${displayName} photo`}
+                        width="154"
+                        height="231"
+                        loading={index < 6 ? "eager" : "lazy"}
+                        decoding="async"
+                        fetchpriority={index < 3 ? "high" : undefined}
+                        onError={() => setImageError(true)}
+                        style={{ objectFit: "cover" }}
                     />
-                    <div className="item-layer position-absolute w-100 h-100"></div>
+                    <div
+                        className="item-layer position-absolute w-100 h-100"
+                        aria-hidden="true"
+                    ></div>
                 </div>
 
-                <b>{actor.name || actor.title}</b>
+                <b>{displayName}</b>
             </div>
-        </div>
+        </article>
     );
 });
 

@@ -1,4 +1,4 @@
-@import "../../Scss/color";
+@use "../../Scss/color" as *;
 
 [type="search"] {
     ::placeholder {

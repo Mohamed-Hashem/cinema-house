@@ -1,31 +1,22 @@
 import axios from "axios";
-import React, {
-    useState,
-    useEffect,
-    useCallback,
-    useRef,
-    memo,
-    useMemo,
-    useTransition,
-} from "react";
+import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { LoadingSpinner } from "../../Components/shared";
 
-// Environment variables for TMDB API
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p";
 
-// Custom hook for AbortController management
+const requestCache = new Map();
+const CACHE_DURATION = 300000;
+
 const useAbortController = () => {
     const controllerRef = useRef(null);
 
     const getController = useCallback(() => {
-        // Abort previous request if exists
         if (controllerRef.current) {
             controllerRef.current.abort();
         }
-        // Create new controller
         controllerRef.current = new AbortController();
         return controllerRef.current;
     }, []);
@@ -37,7 +28,6 @@ const useAbortController = () => {
         }
     }, []);
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => abort();
     }, [abort]);
@@ -45,10 +35,14 @@ const useAbortController = () => {
     return { getController, abort };
 };
 
-// Custom hook for Intersection Observer with better performance
 const useInfiniteScroll = (callback, options = {}) => {
     const observerRef = useRef(null);
     const targetRef = useRef(null);
+    const callbackRef = useRef(callback);
+
+    useEffect(() => {
+        callbackRef.current = callback;
+    }, [callback]);
 
     useEffect(() => {
         const target = targetRef.current;
@@ -58,13 +52,13 @@ const useInfiniteScroll = (callback, options = {}) => {
             (entries) => {
                 const [entry] = entries;
                 if (entry.isIntersecting) {
-                    callback();
+                    callbackRef.current();
                 }
             },
             {
                 root: options.root || null,
-                rootMargin: options.rootMargin || "100px",
-                threshold: options.threshold || 0,
+                rootMargin: options.rootMargin || "300px",
+                threshold: options.threshold || 0.1,
             }
         );
 
@@ -75,27 +69,26 @@ const useInfiniteScroll = (callback, options = {}) => {
                 observerRef.current.disconnect();
             }
         };
-    }, [callback, options.root, options.rootMargin, options.threshold]);
+    }, [options.root, options.rootMargin, options.threshold]);
 
     return targetRef;
 };
 
-// Optimized memoized search result item with stable reference comparison
 const SearchResultItem = memo(
-    ({ item, onNavigate }) => {
-        const imagePath = item.poster_path || item.profile_path;
+    ({ item, onNavigate, index = 0 }) => {
+        const imagePath = item.poster_path || item.profile_path || item.backdrop_path;
         const title = item.title || item.name;
+        const mediaType = item.media_type || "movie";
 
-        // Single navigation handler - more efficient than multiple callbacks
         const handleClick = useCallback(() => {
-            onNavigate(item.media_type, item);
-        }, [item, onNavigate]);
+            onNavigate(mediaType, item);
+        }, [item, onNavigate, mediaType]);
 
-        // Compute vote class without useMemo for simple conditionals
+        if (!title) return null;
+
         const voteClass =
             item.vote_average >= 7 ? "vote vote1" : item.vote_average > 0 ? "vote vote2" : "";
-
-        if (!imagePath) return null;
+        const ratingText = item.vote_average > 0 ? `, Rating: ${item.vote_average.toFixed(1)}` : "";
 
         return (
             <article
@@ -104,25 +97,50 @@ const SearchResultItem = memo(
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === "Enter" && handleClick()}
+                aria-label={`${title}${ratingText}`}
             >
                 <div className="text-center position-relative mb-2">
                     <div className="captionLayer overflow-hidden mb-2">
-                        <img
-                            src={`${TMDB_IMAGE_URL}/w500/${imagePath}`}
-                            className="w-100 h-100"
-                            alt={title}
-                            title={title}
-                            loading="lazy"
-                            decoding="async"
-                        />
+                        {imagePath ? (
+                            <img
+                                src={`${TMDB_IMAGE_URL}/w154/${imagePath}`}
+                                width="154"
+                                height="231"
+                                alt={`${title} ${mediaType === "person" ? "photo" : "poster"}`}
+                                loading={index < 6 ? "eager" : "lazy"}
+                                decoding="async"
+                                fetchpriority={index < 3 ? "high" : undefined}
+                                onError={(e) => {
+                                    e.target.style.display = "none";
+                                    e.target.nextElementSibling?.classList.add("show");
+                                }}
+                                style={{ objectFit: "cover" }}
+                            />
+                        ) : null}
+                        <div
+                            className={imagePath ? "" : "show"}
+                            style={{
+                                width: 154,
+                                height: 231,
+                                backgroundColor: "#1E2D55",
+                                display: imagePath ? "none" : "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#999",
+                                fontSize: 12,
+                                fontWeight: 500,
+                            }}
+                        >
+                            {mediaType === "person" ? "No Photo" : "No Poster"}
+                        </div>
                         <div
                             className="item-layer position-absolute w-100 h-100"
                             aria-hidden="true"
                         />
                     </div>
-                    <b>{title}</b>
+                    <b aria-hidden="true">{title}</b>
                     {item.vote_average > 0 && (
-                        <span className={voteClass} aria-label={`Rating: ${item.vote_average}`}>
+                        <span className={voteClass} aria-hidden="true">
                             {item.vote_average.toFixed(1)}
                         </span>
                     )}
@@ -130,53 +148,56 @@ const SearchResultItem = memo(
             </article>
         );
     },
-    // Custom comparison function for better memoization
-    (prevProps, nextProps) => {
-        return (
-            prevProps.item.id === nextProps.item.id &&
-            prevProps.item.media_type === nextProps.item.media_type &&
-            prevProps.onNavigate === nextProps.onNavigate
-        );
-    }
+    (prevProps, nextProps) =>
+        prevProps.item.id === nextProps.item.id && prevProps.onNavigate === nextProps.onNavigate
 );
 
 SearchResultItem.displayName = "SearchResultItem";
 
-// Loading placeholder component
 const LoadingPlaceholder = memo(() => (
-    <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
+    <div
+        className="text-center w-100"
+        style={{ position: "relative", padding: "3rem 0", minHeight: 200 }}
+    >
+        <LoadingSpinner
+            type="Bars"
+            color="#00BFFF"
+            height={100}
+            width={100}
+            className="d-inline-block"
+        />
+    </div>
 ));
 
-LoadingPlaceholder.displayName = "LoadingPlaceholder";
-
-// Infinite scroll loader component
 const InfiniteScrollLoader = memo(({ isVisible }) =>
     isVisible ? (
-        <span className="py-2 text-center d-block">
-            <LoadingSpinner type="Puff" color="#00BFFF" height={80} width={80} />
-        </span>
+        <div className="py-2 text-center" style={{ position: "relative" }}>
+            <LoadingSpinner
+                type="Puff"
+                color="#00BFFF"
+                height={80}
+                width={80}
+                className="d-inline-block"
+            />
+        </div>
     ) : null
 );
 
-InfiniteScrollLoader.displayName = "InfiniteScrollLoader";
-
 const Search = () => {
     const [results, setResults] = useState([]);
-    const [status, setStatus] = useState("idle"); // 'idle' | 'loading' | 'success' | 'error'
+    const [status, setStatus] = useState("idle");
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const [, startTransition] = useTransition();
+    const isLoadingRef = useRef(false);
 
     const history = useHistory();
     const location = useLocation();
     const { getController, abort } = useAbortController();
 
-    // Extract search key from URL - memoized
     const searchKey = useMemo(() => {
         return decodeURIComponent(location.pathname.slice(8));
     }, [location.pathname]);
 
-    // Unified navigation handler - single stable reference
     const handleNavigate = useCallback(
         (mediaType, item) => {
             window.scrollTo({ top: 0, behavior: "instant" });
@@ -190,17 +211,26 @@ const Search = () => {
         [history]
     );
 
-    // Optimized search function
-    const fetchResults = useCallback(
+    const performSearch = useCallback(
         async (pageNum, query, isNewSearch = false) => {
-            if (!query?.trim()) return;
+            if (!query?.trim() || isLoadingRef.current) return;
 
+            const cacheKey = `${query.trim()}-${pageNum}`;
+            const cachedData = requestCache.get(cacheKey);
+
+            if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
+                const { results: newResults, total_pages } = cachedData.data;
+                setResults((prev) => (isNewSearch ? newResults : [...prev, ...newResults]));
+                setHasMore(pageNum < total_pages);
+                if (isNewSearch) setStatus("success");
+                return;
+            }
+
+            isLoadingRef.current = true;
             const controller = getController();
 
             try {
-                if (isNewSearch) {
-                    setStatus("loading");
-                }
+                if (isNewSearch) setStatus("loading");
 
                 const response = await axios.get(`${TMDB_BASE_URL}/search/multi`, {
                     params: {
@@ -214,58 +244,61 @@ const Search = () => {
 
                 const { results: newResults, total_pages } = response.data;
 
+                requestCache.set(cacheKey, { data: response.data, timestamp: Date.now() });
+                if (requestCache.size > 50) requestCache.delete(requestCache.keys().next().value);
+
                 if (newResults.length === 0 && pageNum === 1) {
                     history.push("/notfound");
                     return;
                 }
 
-                // Use functional update to avoid stale closure issues
-                startTransition(() => {
-                    setResults((prev) => (isNewSearch ? newResults : [...prev, ...newResults]));
-                    setHasMore(pageNum < total_pages);
-                    setStatus("success");
-                });
-
-                localStorage.setItem("searchQuery", query);
+                setResults((prev) => (isNewSearch ? newResults : [...prev, ...newResults]));
+                setHasMore(pageNum < total_pages);
+                if (isNewSearch) setTimeout(() => setStatus("success"), 0);
+                if (isNewSearch) localStorage.setItem("searchQuery", query);
             } catch (error) {
-                if (axios.isCancel(error) || error.name === "AbortError") {
-                    return; // Silently ignore cancelled requests
+                if (!axios.isCancel(error)) {
+                    console.error("Search error:", error);
+                    setStatus("error");
                 }
-                console.error("Search error:", error);
-                setStatus("error");
+            } finally {
+                isLoadingRef.current = false;
             }
         },
         [getController, history]
     );
 
-    // Load more callback for infinite scroll
     const loadMore = useCallback(() => {
-        if (hasMore && status === "success") {
-            const nextPage = page + 1;
-            setPage(nextPage);
-            fetchResults(nextPage, searchKey, false);
+        if (hasMore && status === "success" && !isLoadingRef.current) {
+            setPage((prev) => prev + 1);
+            performSearch(page + 1, searchKey, false);
         }
-    }, [hasMore, status, page, fetchResults, searchKey]);
+    }, [hasMore, status, page, performSearch, searchKey]);
 
-    // Use custom infinite scroll hook
     const loadingRef = useInfiniteScroll(loadMore, {
         rootMargin: "200px",
         threshold: 0,
     });
 
-    // Initial search effect
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
+        isLoadingRef.current = false;
         setResults([]);
         setPage(1);
         setHasMore(true);
         setStatus("idle");
-        fetchResults(1, searchKey, true);
 
-        return abort;
-    }, [searchKey, fetchResults, abort]);
+        if (searchKey?.trim()) {
+            performSearch(1, searchKey, true);
+        }
 
-    // Memoized filtered results (removes duplicates)
+        return () => {
+            abort();
+            isLoadingRef.current = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchKey]);
+
     const uniqueResults = useMemo(() => {
         const seen = new Set();
         return results.filter((item) => {
@@ -276,37 +309,40 @@ const Search = () => {
         });
     }, [results]);
 
-    // Render content based on status
     const renderContent = useMemo(() => {
-        if (status === "loading" && results.length === 0) {
-            return <LoadingPlaceholder />;
-        }
-
-        if (status === "error") {
+        if (status === "loading" && results.length === 0) return <LoadingPlaceholder />;
+        if (status === "error")
             return (
                 <div className="text-center text-white py-5">
                     <p>Something went wrong. Please try again.</p>
                 </div>
             );
+        if (uniqueResults.length > 0) {
+            return uniqueResults.map((item, index) => (
+                <SearchResultItem
+                    key={`${item.media_type}-${item.id}`}
+                    item={item}
+                    onNavigate={handleNavigate}
+                    index={index}
+                />
+            ));
         }
-
-        return uniqueResults.map((item) => (
-            <SearchResultItem
-                key={`${item.media_type}-${item.id}`}
-                item={item}
-                onNavigate={handleNavigate}
-            />
-        ));
-    }, [status, results.length, uniqueResults, handleNavigate]);
+        return null;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [status, uniqueResults, handleNavigate]);
 
     return (
-        <section className="container tv" style={{ minHeight: "75.5vh" }}>
+        <section
+            className="container tv"
+            style={{ minHeight: "75.5vh" }}
+            aria-label="Search results"
+        >
+            <h1 className="sr-only">Search Results for "{searchKey}"</h1>
             <div className="row">
                 {renderContent}
-
                 <div
                     ref={loadingRef}
-                    style={{ height: "100px", margin: "30px auto", width: "100%" }}
+                    style={{ height: 100, margin: "30px auto", width: "100%" }}
                     aria-hidden="true"
                 >
                     <InfiniteScrollLoader isVisible={hasMore && status === "success"} />
@@ -316,4 +352,4 @@ const Search = () => {
     );
 };
 
-export default memo(Search);
+export default Search;

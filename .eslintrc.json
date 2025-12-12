@@ -1,0 +1,18 @@
+{
+    "extends": ["react-app"],
+    "rules": {
+        "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+        "no-console": ["warn", { "allow": ["error", "warn"] }],
+        "react/jsx-no-target-blank": "error",
+        "react/no-array-index-key": "warn",
+        "react-hooks/exhaustive-deps": "warn"
+    },
+    "overrides": [
+        {
+            "files": ["*.jsx", "*.js"],
+            "rules": {
+                "import/no-anonymous-default-export": "off"
+            }
+        }
+    ]
+}

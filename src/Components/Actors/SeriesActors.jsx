@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import AliceCarousel from "react-alice-carousel";
 import axios from "axios";
+import { getProfileUrl } from "../../utils/imageUtils";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
 const handleDragStart = (e) => e.preventDefault();
 
-const TvActors = ({ actors, goToPersonAbout }) => {
+const SeriesActors = ({ actors, goToActorAbout }) => {
     const [loading, setLoading] = useState(false);
     const [credits, setCredits] = useState([]);
     const isMountedRef = useRef(true);
@@ -22,7 +23,7 @@ const TvActors = ({ actors, goToPersonAbout }) => {
                 setCredits(response.data.cast);
             }
         } catch (error) {
-            console.error("Error fetching TV actors:", error);
+            console.error("Error fetching series actors:", error);
             if (isMountedRef.current) {
                 setCredits([]);
             }
@@ -38,34 +39,37 @@ const TvActors = ({ actors, goToPersonAbout }) => {
         };
     }, [actors?.id, fetchActors]);
 
-    // Return null if actors is not defined
-    if (!actors?.id) return null;
+    const items = useMemo(
+        () =>
+            credits?.map((actor) =>
+                actor.profile_path ? (
+                    <div className="item card card-body" onClick={() => goToActorAbout(actor)}>
+                        <div className="position-relative text-center">
+                            <div className="captionLayer overflow-hidden carouselItem mb-2">
+                                <img
+                                    src={getProfileUrl(actor.profile_path)}
+                                    width="185"
+                                    height="278"
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="carouselItem__img"
+                                    alt={actors.title ? actors.title : actors.name}
+                                    onDragStart={handleDragStart}
+                                />
+                                <div className="item-layer position-absolute w-100 h-100"></div>
+                            </div>
 
-    const items = React.Children.toArray(
-        credits?.map((actor) => {
-            return actor.profile_path ? (
-                <div className="item card card-body" onClick={() => goToPersonAbout(actor)}>
-                    <div className="position-relative text-center">
-                        <div className="captionLayer overflow-hidden carouselItem mb-2">
-                            <img
-                                src={`https://image.tmdb.org/t/p/original/${actor.profile_path}`}
-                                width="100%"
-                                height="350px"
-                                className="carouselItem__img"
-                                alt={actors.title ? actors.title : actors.name}
-                                onDragStart={handleDragStart}
-                            />
-                            <div className="item-layer position-absolute w-100 h-100"></div>
+                            <b>
+                                {actor.title} {actor.name}
+                            </b>
                         </div>
-
-                        <b>
-                            {actor.title} {actor.name}
-                        </b>
                     </div>
-                </div>
-            ) : null;
-        })
+                ) : null
+            ) ?? [],
+        [credits, actors, goToActorAbout]
     );
+
+    if (!actors?.id || !loading || !items.length) return null;
 
     const responsive = {
         0: {
@@ -103,4 +107,4 @@ const TvActors = ({ actors, goToPersonAbout }) => {
     ) : null;
 };
 
-export default TvActors;
+export default SeriesActors;

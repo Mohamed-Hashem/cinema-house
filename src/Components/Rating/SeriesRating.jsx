@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaStar } from "react-icons/fa";
+import { StarIcon } from "../shared";
 import axios from "axios";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
@@ -43,13 +43,13 @@ function SeriesRating({ rate }) {
 
                 <div style={styles.container}>
                     <div className="item  text-center my-3">
-                        <h3>Leave Rate To The Movie </h3>
+                        <h3>Leave Rate To The Series </h3>
                     </div>
 
                     <div style={styles.stars}>
                         {stars.map((_, index) => {
                             return (
-                                <FaStar
+                                <StarIcon
                                     key={index}
                                     size={24}
                                     onMouseOver={() => handleMouseOver(index + 1)}
@@ -66,35 +66,6 @@ function SeriesRating({ rate }) {
                         })}
                     </div>
                 </div>
-
-                {/*
-                <form onSubmit={Feedback} className="d-flex my-4">
-                <input placeholder="Leave a Review" onChange={setField} className="form-control mr-4" />
-                <button style={styles.button} className="btn">Submit</button>
-            </form>
-
-            {
-
-                loading ?
-                    <div>
-                        <table>
-                            <thead>
-                                {
-
-                                    review.map((user) => {
-                                        return (
-                                            <tr key={Math.random()}>
-                                                <th style={{ width: "200px" }}>{user.author}</th>
-                                                <td>{String(user.content).slice(0, 50)}</td>
-                                            </tr>
-                                        )
-                                    })
-                                }
-                            </thead>
-                        </table>
-                    </div> : false
-            } 
-            */}
             </div>
         </>
     );
@@ -111,12 +82,6 @@ const styles = {
     stars: {
         display: "flex",
         flexDirection: "row",
-    },
-    button: {
-        border: "1px solid #a8a8a83d",
-        borderRadius: 5,
-        backgroundColor: "#1e2d55",
-        color: "#fff",
     },
 };
 

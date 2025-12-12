@@ -6,7 +6,6 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// Validation schemas
 const registerSchema = Joi.object({
   first_name: Joi.string().min(2).max(50).required(),
   last_name: Joi.string().min(2).max(50).required(),
@@ -20,7 +19,6 @@ const loginSchema = Joi.object({
   password: Joi.string().min(6).required(),
 });
 
-// Generate JWT Token
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -34,9 +32,6 @@ const generateToken = (user) => {
   );
 };
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
-// @access  Public
 router.post("/register", async (req, res) => {
   try {
     const { error } = registerSchema.validate(req.body);
@@ -46,18 +41,15 @@ router.post("/register", async (req, res) => {
 
     const { first_name, last_name, age, email, password } = req.body;
 
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (user) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
-    user = new User({
+    const user = new User({
       first_name,
       last_name,
       age,
@@ -66,16 +58,14 @@ router.post("/register", async (req, res) => {
     });
     await user.save();
 
-    res.json({ message: "success", apiKey: user.apiKey });
-  } catch (err) {
-    console.error(err);
+    res.status(201).json({
+      message: "User registered successfully",
+    });
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// @route   POST /api/auth/login
-// @desc    Login user and return JWT token
-// @access  Public
 router.post("/login", async (req, res) => {
   try {
     const { error } = loginSchema.validate(req.body);
@@ -85,23 +75,20 @@ router.post("/login", async (req, res) => {
 
     const { email, password } = req.body;
 
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Validate password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Generate JWT token
     const token = generateToken(user);
 
     res.json({
-      message: "success",
+      message: "Login successful",
       token,
       user: {
         id: user._id,
@@ -110,15 +97,11 @@ router.post("/login", async (req, res) => {
         email: user.email,
       },
     });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// @route   GET /api/auth/verify
-// @desc    Verify JWT token
-// @access  Private
 router.get("/verify", async (req, res) => {
   try {
     const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -134,19 +117,10 @@ router.get("/verify", async (req, res) => {
       return res.status(401).json({ message: "User not found" });
     }
 
-    res.json({ message: "success", user });
+    res.json({ message: "Token is valid", user });
   } catch {
     res.status(401).json({ message: "Invalid token" });
   }
-});
-
-// @route   POST /api/auth/logout
-// @desc    Logout user (client-side token removal)
-// @access  Public
-router.post("/logout", (req, res) => {
-  // JWT tokens are stateless, so logout is handled client-side
-  // This endpoint can be used to log the logout event or blacklist tokens if needed
-  res.json({ message: "success" });
 });
 
 module.exports = router;

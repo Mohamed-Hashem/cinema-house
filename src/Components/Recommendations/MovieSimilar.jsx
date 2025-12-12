@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import AliceCarousel from "react-alice-carousel";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSimilar } from "../../Redux/Actions/Actions";
+import { getPosterUrl } from "../../utils/imageUtils";
 
 const handleDragStart = (e) => e.preventDefault();
 
@@ -19,42 +20,49 @@ const MovieSimilar = ({ movie, goToMovieAbout }) => {
         return () => {
             setLoading(false);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [movie?.id]);
+    }, [movie?.id, dispatch]);
 
-    // Return null if movie is not defined
-    if (!movie?.id) return null;
-
-    const items = React.Children.toArray(
-        similar?.map((poster) => {
-            return poster.poster_path ? (
-                <div className="item card card-body  mb-3" onClick={() => goToMovieAbout(poster)}>
-                    <div className="text-center position-relative">
-                        <div className="captionLayer overflow-hidden mb-2  carouselItem">
-                            <img
-                                src={`https://image.tmdb.org/t/p/original${poster.poster_path}`}
-                                width="100%"
-                                height="300"
-                                className="carouselItem__img"
-                                alt={poster.title === "undefined" ? poster.name : poster.title}
-                                title={poster.title === "undefined" ? poster.name : poster.title}
-                                onDragStart={handleDragStart}
-                            />
-                            <div className="item-layer position-absolute w-100 h-100"></div>
+    const items = useMemo(
+        () =>
+            similar?.map((poster) =>
+                poster.poster_path ? (
+                    <div
+                        className="item card card-body  mb-3"
+                        onClick={() => goToMovieAbout(poster)}
+                    >
+                        <div className="text-center position-relative">
+                            <div className="captionLayer overflow-hidden mb-2  carouselItem">
+                                <img
+                                    src={getPosterUrl(poster.poster_path)}
+                                    width="154"
+                                    height="231"
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="carouselItem__img"
+                                    alt={poster.title === "undefined" ? poster.name : poster.title}
+                                    title={
+                                        poster.title === "undefined" ? poster.name : poster.title
+                                    }
+                                    onDragStart={handleDragStart}
+                                />
+                                <div className="item-layer position-absolute w-100 h-100"></div>
+                            </div>
+                            <span
+                                className={`${poster.vote_average >= 7 ? "vote vote1" : "vote vote2"}`}
+                            >
+                                {poster.poster_path !== null
+                                    ? Number(poster.vote_average).toFixed(1)
+                                    : ""}
+                            </span>
+                            <b>{poster.title}</b>
                         </div>
-                        <span
-                            className={`${poster.vote_average >= 7 ? "vote vote1" : "vote vote2"}`}
-                        >
-                            {poster.poster_path !== null
-                                ? Number(poster.vote_average).toFixed(1)
-                                : ""}
-                        </span>
-                        <b>{poster.title}</b>
                     </div>
-                </div>
-            ) : null;
-        })
+                ) : null
+            ) ?? [],
+        [similar, goToMovieAbout]
     );
+
+    if (!movie?.id || !loading || !items.length) return null;
 
     const responsive = {
         0: {

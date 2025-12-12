@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import AliceCarousel from "react-alice-carousel";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchActors } from "./../../Redux/Actions/Actions";
+import { getProfileUrl } from "../../utils/imageUtils";
 
 const handleDragStart = (e) => e.preventDefault();
 
-const MovieActors = ({ actor, goToPersonAbout }) => {
+const MovieActors = ({ actor, goToActorAbout }) => {
     const dispatch = useDispatch();
     const credits = useSelector((state) => state.credits);
     const [loading, setLoading] = useState(false);
@@ -19,41 +20,43 @@ const MovieActors = ({ actor, goToPersonAbout }) => {
         return () => {
             setLoading(false);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [actor?.id]);
+    }, [actor?.id, dispatch]);
 
-    // Return null if actor is not defined
-    if (!actor?.id) return null;
+    const items = useMemo(
+        () =>
+            credits?.map((actor) =>
+                actor.profile_path ? (
+                    <div className="item card card-body mb-3">
+                        <div
+                            className="position-relative text-center"
+                            onClick={() => goToActorAbout(actor)}
+                        >
+                            <div className="captionLayer overflow-hidden carouselItem mb-2">
+                                <img
+                                    src={getProfileUrl(actor.profile_path)}
+                                    width="185"
+                                    height="278"
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="carouselItem__img"
+                                    alt={actor.title ? actor.title : actor.name}
+                                    title={actor.title ? actor.title : actor.name}
+                                    onDragStart={handleDragStart}
+                                />
+                                <div className="item-layer position-absolute w-100 h-100"></div>
+                            </div>
 
-    const items = React.Children.toArray(
-        credits?.map((actor) => {
-            return actor.profile_path ? (
-                <div className="item card card-body mb-3">
-                    <div
-                        className="position-relative text-center"
-                        onClick={() => goToPersonAbout(actor)}
-                    >
-                        <div className="captionLayer overflow-hidden carouselItem mb-2">
-                            <img
-                                src={`https://image.tmdb.org/t/p/original/${actor.profile_path}`}
-                                width="100%"
-                                height="300"
-                                className="carouselItem__img"
-                                alt={actor.title ? actor.title : actor.name}
-                                title={actor.title ? actor.title : actor.name}
-                                onDragStart={handleDragStart}
-                            />
-                            <div className="item-layer position-absolute w-100 h-100"></div>
+                            <b>
+                                {actor.title} {actor.name}
+                            </b>
                         </div>
-
-                        <b>
-                            {actor.title} {actor.name}
-                        </b>
                     </div>
-                </div>
-            ) : null;
-        })
+                ) : null
+            ) ?? [],
+        [credits, goToActorAbout]
     );
+
+    if (!actor?.id || !loading || !items.length) return null;
 
     const responsive = {
         0: {

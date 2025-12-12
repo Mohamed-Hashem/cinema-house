@@ -23,7 +23,6 @@ class Login extends Component {
         };
 
         this.Schema = {
-            // Joi Validation
             email: Joi.string().email().required(),
             password: Joi.string().min(6).required(),
         };
@@ -39,9 +38,7 @@ class Login extends Component {
     };
 
     Validation = () => {
-        // Clone
         const errors = {};
-        // Edit
         const { error } = Joi.validate(this.User, this.Schema);
 
         if (error === null) {
@@ -49,8 +46,6 @@ class Login extends Component {
             return null;
         } else {
             for (const err of error.details) errors[err.path] = err.message;
-
-            // Set State
             this.setState({ errors });
         }
     };
@@ -68,11 +63,11 @@ class Login extends Component {
 
             if (!this._isMounted) return;
 
-            if (this.props.LoginData.message === "success") {
-                toast.success("Created Successfully");
+            if (this.props.LoginData && this.props.LoginData.token) {
+                toast.success("Login Successful");
 
                 localStorage.setItem("token", this.props.LoginData.token);
-                this.props.history.replace("/home"); // to change the direction to home and back to empty Page
+                window.location.href = window.location.origin + "/#/home";
             } else if (this.props.LoginData === "Network Error") {
                 toast.error("Network Error");
 
@@ -102,38 +97,63 @@ class Login extends Component {
             <section
                 className="d-flex align-items-center justify-content-center"
                 style={{ minHeight: "100vh", paddingTop: "100px" }}
+                aria-label="Login section"
             >
                 <div className="container text-center" style={{ width: "35%" }}>
-                    <form onSubmit={this.sendData}>
-                        <input
-                            onChange={this.handleChange}
-                            type="email"
-                            name="email"
-                            className="form-control my-3"
-                            placeholder="Email"
-                            autoFocus
-                            autoComplete="email"
-                        />
+                    <h1 className="mb-4">Login</h1>
+                    <form onSubmit={this.sendData} aria-label="Login form">
+                        <div className="form-group">
+                            <label htmlFor="login-email" className="sr-only">
+                                Email
+                            </label>
+                            <input
+                                id="login-email"
+                                onChange={this.handleChange}
+                                type="email"
+                                name="email"
+                                className="form-control my-3"
+                                placeholder="Email"
+                                autoComplete="email"
+                                aria-describedby={
+                                    this.state.errors.email ? "email-error" : undefined
+                                }
+                            />
+                        </div>
                         {this.state.errors.email && (
-                            <div className="alert alert-danger">{this.state.errors.email}</div>
+                            <div id="email-error" className="alert alert-danger" role="alert">
+                                {this.state.errors.email}
+                            </div>
                         )}
 
-                        <input
-                            onChange={this.handleChange}
-                            type="password"
-                            name="password"
-                            className="form-control my-3"
-                            placeholder="Password"
-                            autoComplete="current-password"
-                        />
+                        <div className="form-group">
+                            <label htmlFor="login-password" className="sr-only">
+                                Password
+                            </label>
+                            <input
+                                id="login-password"
+                                onChange={this.handleChange}
+                                type="password"
+                                name="password"
+                                className="form-control my-3"
+                                placeholder="Password"
+                                autoComplete="current-password"
+                                aria-describedby={
+                                    this.state.errors.password ? "password-error" : undefined
+                                }
+                            />
+                        </div>
 
                         {this.state.errors.password && (
-                            <div className="alert alert-danger">{this.state.errors.password}</div>
+                            <div id="password-error" className="alert alert-danger" role="alert">
+                                {this.state.errors.password}
+                            </div>
                         )}
 
-                        <div className={this.state.status}>{this.state.errorMessage}</div>
+                        <div className={this.state.status} role="alert">
+                            {this.state.errorMessage}
+                        </div>
 
-                        <button className="btn btn-info w-50 my-3">
+                        <button type="submit" className="btn btn-info w-50 my-3">
                             {this.state.waiting ? "Waiting ... " : "Login"}
                         </button>
                     </form>

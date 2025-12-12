@@ -1,63 +1,65 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useState } from "react";
 
-const PLACEHOLDER_IMAGE = "https://via.placeholder.com/468x700/1E2D55?Text=No+Image";
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
+const PLACEHOLDER_IMAGE = "https://via.placeholder.com/154x231/1E2D55?text=No+Image";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w154";
 
-/**
- * Unified media card component for displaying movies, TV series, and actors
- */
-const MediaCard = memo(({ item, onClick, type, height, showVote }) => {
-    // Default values
-    const mediaType = type || "movie";
-    const cardHeight = height || "250";
-    const displayVote = showVote !== undefined ? showVote : true;
+const MediaCard = memo(
+    ({ item, onClick, type = "movie", height = "231", showVote = true, index = 0 }) => {
+        const [imgError, setImgError] = useState(false);
+        const style =
+            height === "350" ? "col-xl-3 col-lg-4 col-md-6" : "col-xl-2 col-lg-3 col-md-4";
 
-    const style =
-        cardHeight === "350" ? "col-xl-3 col-lg-4 col-md-6" : "col-xl-2 col-lg-3 col-md-4";
+        const handleClick = useCallback(() => onClick(item), [onClick, item]);
+        const handleKeyDown = useCallback((e) => e.key === "Enter" && handleClick(), [handleClick]);
 
-    const handleClick = useCallback(() => onClick(item), [onClick, item]);
+        const imagePath = type === "person" ? item.profile_path : item.poster_path;
+        const imageSrc =
+            imagePath && !imgError ? `${TMDB_IMAGE_BASE}/${imagePath}` : PLACEHOLDER_IMAGE;
+        const displayName = item.title || item.name;
 
-    // Determine image path based on type
-    const imagePath = mediaType === "person" ? item.profile_path : item.poster_path;
-    const imageSrc = imagePath ? `${TMDB_IMAGE_BASE}/${imagePath}` : PLACEHOLDER_IMAGE;
+        const shouldShowVote = showVote && type !== "person" && imagePath;
+        const voteClass = shouldShowVote
+            ? item.vote_average >= 7
+                ? "vote vote1"
+                : "vote vote2"
+            : "";
 
-    // Get display name
-    const displayName = item.title || item.name;
-
-    // Vote styling (only for movies and TV shows)
-    const shouldShowVote = displayVote && mediaType !== "person" && imagePath !== null;
-    const voteClass = shouldShowVote ? (item.vote_average >= 7 ? "vote vote1" : "vote vote2") : "";
-
-    return (
-        <div
-            className={`item ${style} col-sm-6 my-2 card card-body`}
-            onClick={handleClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && handleClick()}
-            aria-label={`View details for ${displayName}`}
-        >
-            <div className="text-center position-relative mb-2">
-                <div className="captionLayer overflow-hidden mb-2">
-                    <img
-                        src={imageSrc}
-                        width="100%"
-                        height={cardHeight}
-                        alt={displayName}
-                        title={displayName}
-                        loading="lazy"
-                    />
-                    <div className="item-layer position-absolute w-100 h-100"></div>
+        return (
+            <article
+                className={`item ${style} col-sm-6 my-2 card card-body`}
+                onClick={handleClick}
+                onKeyDown={handleKeyDown}
+                role="button"
+                tabIndex={0}
+                aria-label={`${displayName}${shouldShowVote ? `, Rating: ${item.vote_average?.toFixed(1)}` : ""}`}
+            >
+                <div className="text-center position-relative mb-2">
+                    <div className="captionLayer overflow-hidden mb-2">
+                        <img
+                            src={imageSrc}
+                            width="154"
+                            height={height}
+                            alt={`${displayName} ${type === "person" ? "photo" : "poster"}`}
+                            loading={index < 6 ? "eager" : "lazy"}
+                            decoding="async"
+                            fetchpriority={index < 3 ? "high" : undefined}
+                            onError={() => setImgError(true)}
+                            style={{ objectFit: "cover" }}
+                        />
+                        <div
+                            className="item-layer position-absolute w-100 h-100"
+                            aria-hidden="true"
+                        />
+                    </div>
+                    <b>{displayName}</b>
+                    {shouldShowVote && (
+                        <span className={voteClass}>{item.vote_average.toFixed(1)}</span>
+                    )}
                 </div>
-
-                <b>{displayName}</b>
-                {shouldShowVote && (
-                    <span className={voteClass}>{Number(item.vote_average).toFixed(1)}</span>
-                )}
-            </div>
-        </div>
-    );
-});
+            </article>
+        );
+    }
+);
 
 MediaCard.displayName = "MediaCard";
 

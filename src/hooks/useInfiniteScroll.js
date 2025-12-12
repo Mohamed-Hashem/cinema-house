@@ -1,11 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-/**
- * Custom hook for infinite scroll functionality
- * @param {Function} fetchMore - Function to call when more items should be loaded
- * @param {Object} options - IntersectionObserver options
- * @returns {Object} - { loadingRef, page, isLoading }
- */
 const useInfiniteScroll = (fetchMore, options) => {
     const [page, setPage] = useState(1);
     const [prevY, setPrevY] = useState(0);

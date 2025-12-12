@@ -1,106 +1,177 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
-import { LoadingSpinner } from "../../Components/shared";
-import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
-import { getAllData } from "./../../Redux/Actions/Actions";
+import React, { Component } from "react";
+import axios from "axios";
+import { LoadingSpinner, SkeletonCard } from "../../Components/shared";
 import Movie from "./Movie";
 
-const Movies = () => {
-    const [page, setPage] = useState(1);
-    const [prevY, setPrevY] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
+const apiKey = process.env.REACT_APP_TMDB_API_KEY;
 
-    const dispatch = useDispatch();
-    const history = useHistory();
-    const movies = useSelector((state) => state.movies);
-    const loadingRef = useRef(null);
-    const observerRef = useRef(null);
+class Movies extends Component {
+    _isMounted = false;
+    abortController = null;
 
-    // Fetch movies function
-    const getMovies = useCallback(
-        (pageNum) => {
-            dispatch(getAllData(pageNum, "movie"));
-        },
-        [dispatch]
-    );
+    state = {
+        results: [],
+        page: 1,
+        loading: false,
+        hasMore: true,
+        initialLoading: true,
+    };
 
-    // Initial fetch
-    useEffect(() => {
+    componentDidMount() {
+        this._isMounted = true;
+        this.abortController = new AbortController();
         window.scrollTo(0, 0);
-        getMovies(1);
-        setIsLoading(true);
-    }, [getMovies]);
+        this.getData();
+    }
 
-    // Intersection observer for infinite scroll
-    useEffect(() => {
+    componentWillUnmount() {
+        this._isMounted = false;
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.loadMoreRef && !this.observer) {
+            this.setupInfiniteScroll();
+        }
+    }
+
+    setupInfiniteScroll = () => {
         const options = {
             root: null,
-            rootMargin: "0px",
-            threshold: 1.0,
+            rootMargin: "200px",
+            threshold: 0.01,
         };
 
-        const handleObserver = (entities) => {
-            const y = entities[0].boundingClientRect.y;
-
-            if (prevY > y) {
-                const nextPage = page + 1;
-                getMovies(nextPage);
-                setPage(nextPage);
+        this.observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !this.state.loading && this.state.hasMore) {
+                this.loadMore();
             }
-            setPrevY(y);
-        };
+        }, options);
 
-        observerRef.current = new IntersectionObserver(handleObserver, options);
+        if (this.loadMoreRef) {
+            this.observer.observe(this.loadMoreRef);
+        }
+    };
 
-        if (loadingRef.current) {
-            observerRef.current.observe(loadingRef.current);
+    getData = () => {
+        const { page, results } = this.state;
+
+        if (!this._isMounted) return;
+        this.setState({ loading: true });
+
+        axios
+            .get(
+                `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US&page=${page}`,
+                { signal: this.abortController?.signal }
+            )
+            .then((response) => {
+                if (!this._isMounted) return;
+                const newResults = response.data.results;
+                const combinedResults = [...results, ...newResults];
+                const uniqueResults = Array.from(
+                    new Map(combinedResults.map((item) => [item.id, item])).values()
+                );
+                this.setState({
+                    results: uniqueResults,
+                    loading: false,
+                    initialLoading: false,
+                    hasMore: newResults.length > 0 && page < response.data.total_pages,
+                });
+            })
+            .catch((error) => {
+                console.error("Error fetching movies:", error);
+                if (this._isMounted) {
+                    this.setState({
+                        loading: false,
+                        initialLoading: false,
+                        hasMore: false,
+                    });
+                }
+            });
+    };
+
+    loadMore = () => {
+        if (!this._isMounted) return;
+        this.setState(
+            (prevState) => ({ page: prevState.page + 1 }),
+            () => {
+                this.getData();
+            }
+        );
+    };
+
+    goToMovieAbout = (movie) => {
+        window.scrollTo(0, 0);
+        this.props.history.push(`/movies/${movie.id}`, movie);
+    };
+
+    render() {
+        const { results, loading, initialLoading } = this.state;
+
+        if (initialLoading) {
+            return (
+                <section
+                    className="container movies"
+                    style={{ minHeight: "67vh" }}
+                    aria-label="Movies"
+                >
+                    <h1 className="sr-only">Popular Movies</h1>
+                    <div className="row">
+                        <SkeletonCard count={18} />
+                    </div>
+                </section>
+            );
         }
 
-        return () => {
-            if (observerRef.current) {
-                observerRef.current.disconnect();
-            }
-        };
-    }, [prevY, page, getMovies]);
+        const filteredMovies = results.filter((movie) => movie.poster_path);
 
-    // Memoized navigation handler
-    const goToMovieAbout = useCallback(
-        (movie) => {
-            window.scrollTo(0, 0);
-            history.push(`/movies/${movie.id}`, movie);
-        },
-        [history]
-    );
+        return (
+            <section className="container movies" style={{ minHeight: "67vh" }} aria-label="Movies">
+                <h1 className="sr-only">Popular Movies</h1>
+                {filteredMovies.length > 0 ? (
+                    <>
+                        <div className="row">
+                            {filteredMovies.map((movie, index) => (
+                                <Movie
+                                    key={movie.id}
+                                    movie={movie}
+                                    goToMovieAbout={this.goToMovieAbout}
+                                    index={index}
+                                />
+                            ))}
+                        </div>
 
-    // Filter movies with posters
-    const filteredMovies = useMemo(() => movies.filter((movie) => movie.poster_path), [movies]);
-
-    return (
-        <section className="container movies" style={{ minHeight: "67vh" }}>
-            {isLoading && filteredMovies.length > 0 ? (
-                <div className="row">
-                    {filteredMovies.map((movie) => (
-                        <Movie
-                            key={movie.id}
-                            movie={movie}
-                            goToMovieAbout={goToMovieAbout}
-                            height="350"
-                        />
-                    ))}
-                </div>
-            ) : !isLoading ? (
-                <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
-            ) : null}
-
-            <div ref={loadingRef} style={{ height: "100px", margin: "30px" }}>
-                {isLoading && (
-                    <span className="py-2 text-center">
-                        <LoadingSpinner type="Bars" color="#00BFFF" height={80} width={80} />
-                    </span>
+                        <div
+                            ref={(loadMoreRef) => (this.loadMoreRef = loadMoreRef)}
+                            className="d-flex justify-content-center align-items-center"
+                            style={{ height: "100px", margin: "30px" }}
+                        >
+                            {loading && (
+                                <LoadingSpinner
+                                    type="Bars"
+                                    color="#00BFFF"
+                                    height={80}
+                                    width={80}
+                                />
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "50vh" }}
+                    >
+                        <p className="text-muted h5">No movies available</p>
+                    </div>
                 )}
-            </div>
-        </section>
-    );
-};
+            </section>
+        );
+    }
+}
 
-export default memo(Movies);
+export default Movies;

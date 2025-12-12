@@ -1,24 +1,43 @@
 {
-  "name": "myapi",
+  "name": "cinema-house-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend server for Cinema House application using Node.js, Express, and MongoDB. Provides authentication with JWT, user management, and API endpoints for movie data.",
   "main": "index.js",
+  "author": {
+    "name": "Mohamed Hashem"
+  },
+  "license": "ISC",
+  "private": true,
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"**/*.js\"",
     "lint": "eslint **/*.js",
     "lint:fix": "eslint **/*.js --fix"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "cinema",
+    "movie",
+    "backend",
+    "express",
+    "mongodb",
+    "jwt",
+    "authentication",
+    "rest-api",
+    "nodejs"
+  ],
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "helmet": "^8.1.0",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^7.0.0",

@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
-import { LoadingSpinner } from "../../Components/shared";
+import React, { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getTrending } from "./../../Redux/Actions/Actions";
+import { SkeletonCard } from "../../Components/shared";
+import { generatePath } from "../../utils/routes";
 import Movie from "../Movies/Movie";
 import Serie from "../Series/Serie";
 import Actor from "../Actors/Actor";
 
-// Memoized section header component
 const SectionHeader = memo(({ title, subtitle }) => (
     <div className="col-md-4 col-sm-12 d-flex justify-content-center align-items-center">
         <div className="item">
@@ -23,7 +23,7 @@ SectionHeader.displayName = "SectionHeader";
 
 const Home = () => {
     const history = useHistory();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const dispatch = useDispatch();
 
@@ -33,45 +33,63 @@ const Home = () => {
 
     useEffect(() => {
         window.scrollTo(0, 0);
+        const hasData = movies.length > 0 && series.length > 0 && actors.length > 0;
 
-        dispatch(getTrending("movie"));
-        dispatch(getTrending("tv"));
-        dispatch(getTrending("person"));
+        if (!hasData) {
+            dispatch(getTrending("movie"));
+            dispatch(getTrending("tv"));
+            dispatch(getTrending("person"));
+        }
 
-        setIsLoading(true);
+        const timer = setTimeout(
+            () => {
+                setIsLoading(false);
+            },
+            hasData ? 100 : 1500
+        );
 
         return () => {
-            setIsLoading(false);
+            clearTimeout(timer);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [movies.length, series.length, actors.length, dispatch]);
 
-    // Memoized navigation handlers
+    const isNavigatingRef = useRef(false);
+
     const goToMovieAbout = useCallback(
         (movie) => {
-            window.scrollTo(0, 0);
-            history.push(`/movies/${movie.id}`, movie);
+            if (isNavigatingRef.current) return;
+            isNavigatingRef.current = true;
+            history.push(generatePath.movie(movie.id), movie);
+            requestAnimationFrame(() => {
+                isNavigatingRef.current = false;
+            });
         },
         [history]
     );
 
     const goToSeriesAbout = useCallback(
         (series) => {
-            window.scrollTo(0, 0);
-            history.push(`/series/${series.id}`, series);
+            if (isNavigatingRef.current) return;
+            isNavigatingRef.current = true;
+            history.push(generatePath.series(series.id), series);
+            requestAnimationFrame(() => {
+                isNavigatingRef.current = false;
+            });
         },
         [history]
     );
 
     const goToActorsAbout = useCallback(
         (actor) => {
-            window.scrollTo(0, 0);
-            history.push(`/actors/${actor.id}`, actor);
+            if (isNavigatingRef.current) return;
+            isNavigatingRef.current = true;
+            history.push(generatePath.actor(actor.id), actor);
+            requestAnimationFrame(() => {
+                isNavigatingRef.current = false;
+            });
         },
         [history]
     );
-
-    // Memoized filtered data (only items with posters/profiles)
     const filteredMovies = useMemo(
         () => movies.slice(0, 10).filter((movie) => movie.poster_path),
         [movies]
@@ -87,30 +105,18 @@ const Home = () => {
         [actors]
     );
 
-    return (
-        <div className="container home" style={{ minHeight: "71vh" }}>
-            {/* Movies Section */}
-            {isLoading && filteredMovies.length > 0 ? (
+    // Show loading spinner while data is being fetched
+    if (isLoading) {
+        return (
+            <div className="container home" style={{ minHeight: "71vh" }}>
                 <div className="row">
                     <SectionHeader
                         title="Trending Movies to Watch now"
                         subtitle="Most Watched Movies"
                     />
-                    {filteredMovies.map((movie) => (
-                        <Movie
-                            key={movie.id}
-                            movie={movie}
-                            goToMovieAbout={goToMovieAbout}
-                            height="250"
-                        />
-                    ))}
+                    <SkeletonCard count={10} />
                 </div>
-            ) : !isLoading ? (
-                <LoadingSpinner />
-            ) : null}
 
-            {/* TV Series Section */}
-            {isLoading && filteredSeries.length > 0 ? (
                 <div className="row my-3">
                     <SectionHeader
                         title={
@@ -121,21 +127,9 @@ const Home = () => {
                         }
                         subtitle="Most Watched Series"
                     />
-                    {filteredSeries.map((serie) => (
-                        <Serie
-                            key={serie.id}
-                            serie={serie}
-                            goToSeriesAbout={goToSeriesAbout}
-                            height="250"
-                        />
-                    ))}
+                    <SkeletonCard count={10} />
                 </div>
-            ) : !isLoading ? (
-                <LoadingSpinner />
-            ) : null}
 
-            {/* Actors Section */}
-            {isLoading && filteredActors.length > 0 ? (
                 <div className="row mt-3">
                     <SectionHeader
                         title={
@@ -145,18 +139,73 @@ const Home = () => {
                         }
                         subtitle="Most Popular Actors and Actress"
                     />
-                    {filteredActors.map((actor) => (
+                    <SkeletonCard count={10} />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container home" style={{ minHeight: "71vh" }}>
+            {filteredMovies.length > 0 && (
+                <div className="row">
+                    <SectionHeader
+                        title="Trending Movies to Watch now"
+                        subtitle="Most Watched Movies"
+                    />
+                    {filteredMovies.map((movie, index) => (
+                        <Movie
+                            key={movie.id}
+                            movie={movie}
+                            goToMovieAbout={goToMovieAbout}
+                            index={index}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {filteredSeries.length > 0 && (
+                <div className="row my-3">
+                    <SectionHeader
+                        title={
+                            <>
+                                Trending <br />
+                                Series to Watch now
+                            </>
+                        }
+                        subtitle="Most Watched Series"
+                    />
+                    {filteredSeries.map((serie, index) => (
+                        <Serie
+                            key={serie.id}
+                            serie={serie}
+                            goToSeriesAbout={goToSeriesAbout}
+                            index={index}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {filteredActors.length > 0 && (
+                <div className="row mt-3">
+                    <SectionHeader
+                        title={
+                            <>
+                                Trending <br /> Actors and Actress
+                            </>
+                        }
+                        subtitle="Most Popular Actors and Actress"
+                    />
+                    {filteredActors.map((actor, index) => (
                         <Actor
                             key={actor.id}
                             actor={actor}
                             goToActorsAbout={goToActorsAbout}
-                            height="250"
+                            index={index}
                         />
                     ))}
                 </div>
-            ) : !isLoading ? (
-                <LoadingSpinner />
-            ) : null}
+            )}
         </div>
     );
 };

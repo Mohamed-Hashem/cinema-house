@@ -1,26 +1,14 @@
 import React, { memo } from "react";
 import Loader from "react-loader-spinner";
 
-/**
- * Reusable loading spinner component
- */
-const LoadingSpinner = memo(function LoadingSpinner(props) {
-    const spinnerHeight = props.height || 100;
-    const spinnerWidth = props.width || 100;
-    const spinnerColor = props.color || "#00BFFF";
-    const spinnerType = props.type || "Bars";
-    const containerClass = props.className || "Loader";
-
-    return (
-        <div className={containerClass}>
-            <Loader
-                type={spinnerType}
-                color={spinnerColor}
-                height={spinnerHeight}
-                width={spinnerWidth}
-            />
+const LoadingSpinner = memo(
+    ({ height = 100, width = 100, color = "#00BFFF", type = "Bars", className = "Loader" }) => (
+        <div className={className}>
+            <Loader type={type} color={color} height={height} width={width} />
         </div>
-    );
-});
+    )
+);
+
+LoadingSpinner.displayName = "LoadingSpinner";
 
 export default LoadingSpinner;

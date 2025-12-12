@@ -1,4 +1,5 @@
-@import "../../Scss/color";
+@use "sass:color";
+@use "../../Scss/color" as *;
 
 @mixin font($size, $weight) {
     size: $size;
@@ -56,9 +57,98 @@ nav::after {
 
 .bg-purple {
     background-color: $purpleColor;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: $hover1Color;
+        box-shadow: 0 4px 12px rgba(77, 100, 212, 0.4);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        background-color: color.adjust($hover1Color, $lightness: -8%);
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(77, 100, 212, 0.3);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(139, 153, 224, 0.5);
+    }
+}
+
+.dropdown {
+    position: relative;
 }
 
 .dropdown-menu {
-    left: -125px;
-    background-color: #7280d1 !important;
+    left: auto;
+    right: 0;
+    background-color: #2a3a6e !important;
+    display: none;
+    position: absolute;
+    top: 100%;
+    min-width: 180px;
+    padding: 0.5rem 0;
+    margin: 0.5rem 0 0;
+    border-radius: 8px;
+    border: 1px solid rgba(139, 153, 224, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    animation: dropdownFadeIn 0.2s ease-out;
+
+    &.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        color: $whiteColor;
+        padding: 10px 16px;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        background-color: transparent;
+
+        &:hover:not(.disabled) {
+            background-color: $hover1Color;
+            border-left-color: $dotColor;
+            color: $whiteColor;
+            transform: translateX(4px);
+        }
+
+        &:active:not(.disabled) {
+            background-color: color.adjust($hover1Color, $lightness: -10%);
+            transform: translateX(4px) scale(0.98);
+        }
+
+        &.disabled {
+            color: $grayColor;
+            cursor: not-allowed;
+            opacity: 0.6;
+
+            &:hover {
+                background-color: transparent;
+                transform: none;
+            }
+        }
+    }
+
+    .dropdown-divider {
+        border-top: 1px solid rgba(139, 153, 224, 0.3);
+        margin: 0.5rem 0;
+    }
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

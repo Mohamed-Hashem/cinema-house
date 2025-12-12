@@ -1,14 +1,13 @@
 import React, { Component } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import LoadingSpinner from "../../Components/shared/LoadingSpinner";
-import "../../Scss/color.scss";
-import "./Tv.scss";
+import { LoadingSpinner, SkeletonCard } from "../../Components/shared";
+import Serie from "../Series/Serie";
 
 const apiKey = process.env.REACT_APP_TMDB_API_KEY;
 
 class Tv extends Component {
     _isMounted = false;
+    abortController = null;
 
     state = {
         results: [],
@@ -20,22 +19,32 @@ class Tv extends Component {
 
     componentDidMount() {
         this._isMounted = true;
+        this.abortController = new AbortController();
+        window.scrollTo(0, 0);
         this.getData();
-        this.setupInfiniteScroll();
     }
 
     componentWillUnmount() {
         this._isMounted = false;
+        if (this.abortController) {
+            this.abortController.abort();
+        }
         if (this.observer) {
             this.observer.disconnect();
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.loadMoreRef && !this.observer) {
+            this.setupInfiniteScroll();
         }
     }
 
     setupInfiniteScroll = () => {
         const options = {
             root: null,
-            rootMargin: "100px",
-            threshold: 0.1,
+            rootMargin: "200px",
+            threshold: 0.01,
         };
 
         this.observer = new IntersectionObserver((entries) => {
@@ -57,22 +66,31 @@ class Tv extends Component {
 
         axios
             .get(
-                `https://api.themoviedb.org/3/tv/popular?api_key=${apiKey}&language=en-US&page=${page}`
+                `https://api.themoviedb.org/3/tv/popular?api_key=${apiKey}&language=en-US&page=${page}`,
+                { signal: this.abortController?.signal }
             )
             .then((response) => {
                 if (!this._isMounted) return;
                 const newResults = response.data.results;
+                const combinedResults = [...results, ...newResults];
+                const uniqueResults = Array.from(
+                    new Map(combinedResults.map((item) => [item.id, item])).values()
+                );
                 this.setState({
-                    results: [...results, ...newResults],
+                    results: uniqueResults,
                     loading: false,
                     initialLoading: false,
                     hasMore: newResults.length > 0 && page < response.data.total_pages,
                 });
             })
             .catch((error) => {
-                console.error("Error fetching TV shows:", error);
+                console.error("Error fetching series:", error);
                 if (this._isMounted) {
-                    this.setState({ loading: false, initialLoading: false });
+                    this.setState({
+                        loading: false,
+                        initialLoading: false,
+                        hasMore: false,
+                    });
                 }
             });
     };
@@ -87,65 +105,75 @@ class Tv extends Component {
         );
     };
 
+    goToSeriesAbout = (serie) => {
+        window.scrollTo(0, 0);
+        this.props.history.push(`/series/${serie.id}`, serie);
+    };
+
     render() {
         const { results, loading, initialLoading } = this.state;
 
         if (initialLoading) {
-            return <LoadingSpinner />;
+            return (
+                <section
+                    className="container series"
+                    style={{ minHeight: "67vh" }}
+                    aria-label="TV Series"
+                >
+                    <h1 className="sr-only">Popular TV Series</h1>
+                    <div className="row">
+                        <SkeletonCard count={18} />
+                    </div>
+                </section>
+            );
         }
 
-        return (
-            <div className="tv-container">
-                <h1 className="tv-title">Popular TV Shows</h1>
-                {results.length > 0 ? (
-                    <div className="tv-grid">
-                        {results.map((tv, index) => (
-                            <Link
-                                to={`/series/${tv.id}`}
-                                key={`${tv.id}-${index}`}
-                                className="tv-card"
-                            >
-                                <div className="tv-poster">
-                                    {tv.poster_path ? (
-                                        <img
-                                            src={`https://image.tmdb.org/t/p/w300${tv.poster_path}`}
-                                            alt={tv.name}
-                                            loading="lazy"
-                                        />
-                                    ) : (
-                                        <div className="no-poster">No Image</div>
-                                    )}
-                                </div>
-                                <div className="tv-info">
-                                    <h3 className="tv-name">{tv.name}</h3>
-                                    <div className="tv-meta">
-                                        <span className="tv-rating">
-                                            ⭐ {tv.vote_average?.toFixed(1) || "N/A"}
-                                        </span>
-                                        <span className="tv-year">
-                                            {tv.first_air_date?.substring(0, 4) || "N/A"}
-                                        </span>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-center">No TV shows found</p>
-                )}
+        const filteredSeries = results.filter((serie) => serie.poster_path);
 
-                <div
-                    ref={(el) => {
-                        this.loadMoreRef = el;
-                        if (el && this.observer) {
-                            this.observer.observe(el);
-                        }
-                    }}
-                    className="load-more-trigger"
-                >
-                    {loading && <LoadingSpinner />}
-                </div>
-            </div>
+        return (
+            <section
+                className="container series"
+                style={{ minHeight: "67vh" }}
+                aria-label="TV Series"
+            >
+                <h1 className="sr-only">Popular TV Series</h1>
+                {filteredSeries.length > 0 ? (
+                    <>
+                        <div className="row">
+                            {filteredSeries.map((serie, index) => (
+                                <Serie
+                                    key={serie.id}
+                                    serie={serie}
+                                    goToSeriesAbout={this.goToSeriesAbout}
+                                    index={index}
+                                />
+                            ))}
+                        </div>
+
+                        <div
+                            ref={(loadMoreRef) => (this.loadMoreRef = loadMoreRef)}
+                            className="d-flex justify-content-center align-items-center"
+                            style={{ height: "100px", margin: "30px" }}
+                        >
+                            {loading && (
+                                <LoadingSpinner
+                                    type="Bars"
+                                    color="#00BFFF"
+                                    height={80}
+                                    width={80}
+                                />
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "50vh" }}
+                    >
+                        <p className="text-muted h5">No TV shows available</p>
+                    </div>
+                )}
+            </section>
         );
     }
 }

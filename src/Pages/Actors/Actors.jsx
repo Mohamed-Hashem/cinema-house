@@ -1,106 +1,177 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
-import { LoadingSpinner } from "../../Components/shared";
-import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
-import { getAllData } from "./../../Redux/Actions/Actions";
+import React, { Component } from "react";
+import axios from "axios";
+import { LoadingSpinner, SkeletonCard } from "../../Components/shared";
 import Actor from "./Actor";
 
-const Actors = () => {
-    const [page, setPage] = useState(1);
-    const [prevY, setPrevY] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
+const apiKey = process.env.REACT_APP_TMDB_API_KEY;
 
-    const dispatch = useDispatch();
-    const history = useHistory();
-    const actors = useSelector((state) => state.actors);
-    const loadingRef = useRef(null);
-    const observerRef = useRef(null);
+class Actors extends Component {
+    _isMounted = false;
+    abortController = null;
 
-    // Fetch actors function
-    const getActors = useCallback(
-        (pageNum) => {
-            dispatch(getAllData(pageNum, "person"));
-        },
-        [dispatch]
-    );
+    state = {
+        results: [],
+        page: 1,
+        loading: false,
+        hasMore: true,
+        initialLoading: true,
+    };
 
-    // Initial fetch
-    useEffect(() => {
+    componentDidMount() {
+        this._isMounted = true;
+        this.abortController = new AbortController();
         window.scrollTo(0, 0);
-        getActors(1);
-        setIsLoading(true);
-    }, [getActors]);
+        this.getData();
+    }
 
-    // Intersection observer for infinite scroll
-    useEffect(() => {
+    componentWillUnmount() {
+        this._isMounted = false;
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.loadMoreRef && !this.observer) {
+            this.setupInfiniteScroll();
+        }
+    }
+
+    setupInfiniteScroll = () => {
         const options = {
             root: null,
-            rootMargin: "0px",
-            threshold: 1.0,
+            rootMargin: "200px",
+            threshold: 0.01,
         };
 
-        const handleObserver = (entities) => {
-            const y = entities[0].boundingClientRect.y;
-
-            if (prevY > y) {
-                const nextPage = page + 1;
-                getActors(nextPage);
-                setPage(nextPage);
+        this.observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !this.state.loading && this.state.hasMore) {
+                this.loadMore();
             }
-            setPrevY(y);
-        };
+        }, options);
 
-        observerRef.current = new IntersectionObserver(handleObserver, options);
+        if (this.loadMoreRef) {
+            this.observer.observe(this.loadMoreRef);
+        }
+    };
 
-        if (loadingRef.current) {
-            observerRef.current.observe(loadingRef.current);
+    getData = () => {
+        const { page, results } = this.state;
+
+        if (!this._isMounted) return;
+        this.setState({ loading: true });
+
+        axios
+            .get(
+                `https://api.themoviedb.org/3/person/popular?api_key=${apiKey}&language=en-US&page=${page}`,
+                { signal: this.abortController?.signal }
+            )
+            .then((response) => {
+                if (!this._isMounted) return;
+                const newResults = response.data.results;
+                const combinedResults = [...results, ...newResults];
+                const uniqueResults = Array.from(
+                    new Map(combinedResults.map((item) => [item.id, item])).values()
+                );
+                this.setState({
+                    results: uniqueResults,
+                    loading: false,
+                    initialLoading: false,
+                    hasMore: newResults.length > 0 && page < response.data.total_pages,
+                });
+            })
+            .catch((error) => {
+                console.error("Error fetching actors:", error);
+                if (this._isMounted) {
+                    this.setState({
+                        loading: false,
+                        initialLoading: false,
+                        hasMore: false,
+                    });
+                }
+            });
+    };
+
+    loadMore = () => {
+        if (!this._isMounted) return;
+        this.setState(
+            (prevState) => ({ page: prevState.page + 1 }),
+            () => {
+                this.getData();
+            }
+        );
+    };
+
+    goToActorsAbout = (actor) => {
+        window.scrollTo(0, 0);
+        this.props.history.push(`/actors/${actor.id}`, actor);
+    };
+
+    render() {
+        const { results, loading, initialLoading } = this.state;
+
+        if (initialLoading) {
+            return (
+                <section
+                    className="container people"
+                    style={{ minHeight: "71vh" }}
+                    aria-label="Actors"
+                >
+                    <h1 className="sr-only">Popular Actors</h1>
+                    <div className="row">
+                        <SkeletonCard count={18} />
+                    </div>
+                </section>
+            );
         }
 
-        return () => {
-            if (observerRef.current) {
-                observerRef.current.disconnect();
-            }
-        };
-    }, [prevY, page, getActors]);
+        const filteredActors = results.filter((actor) => actor.profile_path);
 
-    // Memoized navigation handler
-    const goToActorsAbout = useCallback(
-        (actor) => {
-            window.scrollTo(0, 0);
-            history.push(`/actors/${actor.id}`, actor);
-        },
-        [history]
-    );
+        return (
+            <section className="container people" style={{ minHeight: "71vh" }} aria-label="Actors">
+                <h1 className="sr-only">Popular Actors</h1>
+                {filteredActors.length > 0 ? (
+                    <>
+                        <div className="row">
+                            {filteredActors.map((actor, index) => (
+                                <Actor
+                                    key={actor.id}
+                                    actor={actor}
+                                    goToActorsAbout={this.goToActorsAbout}
+                                    index={index}
+                                />
+                            ))}
+                        </div>
 
-    // Filter actors with profile images
-    const filteredActors = useMemo(() => actors.filter((actor) => actor.profile_path), [actors]);
-
-    return (
-        <section className="container people" style={{ minHeight: "71vh" }}>
-            {isLoading ? (
-                <div className="row">
-                    {filteredActors.map((actor) => (
-                        <Actor
-                            key={actor.id}
-                            actor={actor}
-                            goToActorsAbout={goToActorsAbout}
-                            height="350"
-                        />
-                    ))}
-                </div>
-            ) : (
-                <LoadingSpinner type="Bars" color="#00BFFF" height={100} width={100} />
-            )}
-
-            <div ref={loadingRef} style={{ height: "100px", margin: "30px" }}>
-                {isLoading && (
-                    <span className="py-2 text-center">
-                        <LoadingSpinner type="Bars" color="#00BFFF" height={80} width={80} />
-                    </span>
+                        <div
+                            ref={(loadMoreRef) => (this.loadMoreRef = loadMoreRef)}
+                            className="d-flex justify-content-center align-items-center"
+                            style={{ height: "100px", margin: "30px" }}
+                        >
+                            {loading && (
+                                <LoadingSpinner
+                                    type="Bars"
+                                    color="#00BFFF"
+                                    height={80}
+                                    width={80}
+                                />
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "50vh" }}
+                    >
+                        <p className="text-muted h5">No actors available</p>
+                    </div>
                 )}
-            </div>
-        </section>
-    );
-};
+            </section>
+        );
+    }
+}
 
-export default memo(Actors);
+export default Actors;

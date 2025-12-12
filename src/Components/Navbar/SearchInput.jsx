@@ -40,13 +40,17 @@ const SearchInput = memo(() => {
 
     return (
         <>
-            <form onSubmit={handleSubmit} className="mr-4">
+            <form onSubmit={handleSubmit} className="mr-4" role="search">
+                <label htmlFor="search-input" className="sr-only">
+                    Search movies, series, and actors
+                </label>
                 <input
+                    id="search-input"
                     onChange={handleSearchChange}
                     className="mr-5 form-control bg-transparent text-white focus"
                     type="search"
                     placeholder="Search . . ."
-                    autoFocus
+                    aria-label="Search movies, series, and actors"
                 />
             </form>
             {fireRedirect && searchQuery && (
