@@ -1,6 +1,6 @@
 {
   "name": "cinema-house-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Backend server for Cinema House application using Node.js, Express, and MongoDB. Provides authentication with JWT, user management, and API endpoints for movie data.",
   "main": "index.js",
   "author": {
