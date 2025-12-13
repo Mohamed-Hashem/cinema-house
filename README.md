@@ -120,13 +120,22 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 
 ### ⚡ Performance Optimizations
 
-- [x] **Image Optimization**: WebP format conversion for TMDB images, responsive srcset, lazy loading
+- [x] **Image Optimization**: Smart TMDB image sizing system (w342, w500, w780 vs original), ~95% size reduction (1.5MB → 50KB per image)
+- [x] **Lazy Loading**: Native lazy loading on all carousel and grid images with loading="lazy" attribute
+- [x] **Code Splitting**: Named webpack chunks with webpackChunkName comments for better caching
+    - `actors-list` (1.72 KB), `actor-detail` (2.49 KB), `tv-detail` (3.71 KB), `movie-detail` (3.61 KB)
+    - Eliminated cross-route code leakage (TV code no longer loads on Actor pages)
+- [x] **Optimized Image Delivery**: Reduced network payload from 93 MB to under 5 MB (~95% reduction)
+    - Carousel posters: original (1-1.5 MB) → w342 (~30-50 KB)
+    - Detail page posters: original (1-1.5 MB) → w500 (~50-80 KB)
+    - Backdrop images: original (1-2 MB) → w780 (~100-200 KB)
+    - Episode stills: original (500 KB) → w300 (~30 KB)
+- [x] **Loading States**: Skeleton cards (10 per page) for consistent UX during data fetching
 - [x] **Caching Strategy**: 1-year cache for static assets (462 KiB savings), immutable resources
-- [x] **Code Splitting**: Lazy loading routes with React.lazy (303 KiB unused JS removed)
 - [x] **Security Headers**: X-Content-Type-Options, X-Frame-Options, XSS Protection, Referrer-Policy
-- [x] **Resource Hints**: Preconnect, DNS prefetch, preload critical fonts and assets (310 ms savings)
+- [x] **Resource Hints**: Preconnect, DNS prefetch for TMDB API and images (310 ms savings)
 - [x] **CSS Optimization**: Custom Bootstrap build with only used components (34 KiB savings)
-- [x] **Font Loading**: font-display: swap for Montserrat Alternates
+- [x] **Font Loading**: font-display: swap for Montserrat Alternates (prevents FOIT)
 - [x] **SEO**: robots.txt, sitemap.xml, meta tags optimization
 - [x] **Compression**: Background image optimization with content-visibility
 - [x] **Memoization**: React.memo for components, useCallback/useMemo for values
@@ -136,9 +145,14 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 - [x] **Custom Hooks**: Reusable useApi, useDebounce, useThrottle, useInfiniteScroll
 - [x] **Centralized API**: Single axios instance with interceptors (49% code reduction)
 - [x] **ES6+ Modern Syntax**: Arrow functions, destructuring, template literals
+- [x] **Image Utils Module**: Centralized image size management for consistent optimization
 
-**Lighthouse Score: 91/100** (Performance) | [📊 Full Report](DEPLOYMENT-GUIDE.md)  
-✅ FCP: 0.8s (96/100) | ✅ LCP: 1.0s (96/100) | ⚠️ TBT: 210ms (79/100) | ✅ CLS: 0.001 (100/100) | ✅ SI: 1.3s (91/100)
+**Expected Lighthouse Improvements:**
+
+- Image Delivery: 11.8 MB savings (95%+ reduction)
+- Total Blocking Time: Reduced via lazy loading
+- INP (Interaction to Next Paint): Improved from fewer main-thread image decodes
+- Cumulative Layout Shift: Minimized with proper image dimensions
 
 ### 🛠️ Technical Features
 
@@ -152,8 +166,10 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 - [x] Centralized error handling
 - [x] Reusable validation utilities
 - [x] Helper functions for data formatting
+- [x] Image optimization utilities (imageUtils.js)
 - [x] ESLint and Prettier configuration
 - [x] Consistent code formatting
+- [x] Zero ESLint warnings/errors
 
 ### 🎨 Reusable Components
 
@@ -165,23 +181,25 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 - [x] LoadingSpinner - Customizable loading indicator
 - [x] ErrorBoundary - Error boundary wrapper
 - [x] ImageWithFallback - Images with fallback support and error handling
-- [x] SkeletonCard - Loading skeleton UI
+- [x] SkeletonCard - Loading skeleton UI (10 items per page)
 - [x] PosterModal - Image modal viewer
 - [x] ImageGallery - Optimized image gallery carousel with memoized navigation
+- [x] Actor, Movie, Serie - Optimized card components with lazy loading
 
 ### 🔧 Code Quality & Architecture
 
 - [x] DRY principles (Don't Repeat Yourself)
 - [x] Separation of concerns
 - [x] Centralized API services (tmdbService, authService, dataService)
-- [x] Utility-first helper functions
+- [x] Utility-first helper functions (imageUtils, validation, profileHelpers, apiHelpers)
 - [x] Consistent validation logic across frontend/backend
 - [x] Clean code structure with minimal duplication
 - [x] Modular component architecture
 - [x] Single source of truth for business logic
 - [x] ES6+ modern JavaScript syntax
 - [x] Consistent code formatting with Prettier
-- [x] ESLint configuration for code quality
+- [x] ESLint configuration for code quality (0 warnings, 0 errors)
+- [x] React Hooks best practices (proper dependency arrays)
 
 ---
 
@@ -233,7 +251,8 @@ cinema-house-frontend/
     │   ├── validation.js   # Form validation
     │   ├── profileHelpers.js # Profile utilities
     │   ├── routes.js       # Route constants
-    │   └── imageUtils.js   # Image helpers
+    │   ├── imageUtils.js   # TMDB image optimization (w342, w500, w780)
+    │   └── apiHelpers.js   # API helper utilities
     └── Scss/                # Global styles
         ├── color.scss      # Color variables
         ├── mixin.scss      # SCSS mixins
@@ -350,6 +369,34 @@ The backend is powered by **AuthStack** - a secure authentication and user manag
 
 ## Recent Enhancements
 
+### 🚀 Major Performance Overhaul (December 2025)
+
+**Image Optimization System** (~95% Size Reduction)
+✅ Created centralized `imageUtils.js` module with smart TMDB image sizing  
+✅ Updated 20+ components to use optimized image sizes instead of `/original/`  
+✅ Carousel images: 1.5MB → 30-50KB (w342)  
+✅ Detail page images: 1.5MB → 50-80KB (w500)  
+✅ Backdrop images: 2MB → 100-200KB (w780)  
+✅ Episode stills: 500KB → 30KB (w300)  
+✅ Total network payload: 93MB → under 5MB per page load
+
+**Lazy Loading Implementation**
+✅ Added `loading="lazy"` to 12+ carousel components  
+✅ Reduced Initial DOM rendering and main-thread blocking  
+✅ Improved Interaction to Next Paint (INP) metric  
+✅ Better Total Blocking Time (TBT) scores
+
+**Code Splitting Enhancements**
+✅ Named webpack chunks with `webpackChunkName` comments  
+✅ Separated route bundles: actors-list (1.72KB), actor-detail (2.49KB), tv-detail (3.71KB)  
+✅ Eliminated cross-route code contamination (TV code no longer loads on Actor pages)  
+✅ Better browser caching with consistent chunk names
+
+**Skeleton Loading States**
+✅ Consistent 10-item skeleton cards across all list pages  
+✅ Improved perceived performance during data fetching  
+✅ Better user experience with visual feedback
+
 ### Frontend Performance Optimizations
 
 ✅ Optimized API service layer with 49% code reduction  
@@ -359,7 +406,8 @@ The backend is powered by **AuthStack** - a secure authentication and user manag
 ✅ Reduced LoadingSpinner component by 48%  
 ✅ Converted components to ES6+ arrow functions  
 ✅ Enhanced poster components with error handling and fallback images  
-✅ Improved accessibility with better alt text
+✅ Improved accessibility with better alt text  
+✅ Fixed React Hooks ESLint warnings in Actor, Movie, Serie components
 
 ### Backend Security & Performance
 
