@@ -50,12 +50,12 @@ const ActorPopular = ({ actor, goToActorAbout }) => {
                             <div className="captionLayer overflow-hidden mb-2  carouselItem">
                                 <img
                                     src={getProfileUrl(poster.profile_path)}
-                                    width="185"
-                                    height="278"
+                                    width="140"
+                                    height="210"
                                     loading="lazy"
                                     decoding="async"
                                     className="carouselItem__img"
-                                    alt={actor.name}
+                                    alt={actor?.name || "Actor"}
                                     onDragStart={handleDragStart}
                                 />
                                 <div className="item-layer position-absolute w-100 h-100"></div>
@@ -91,7 +91,7 @@ const ActorPopular = ({ actor, goToActorAbout }) => {
 
                 <div className="item  text-center my-3">
                     <h3>
-                        <b className="text-info">{actor.name}</b> and Popular Actors and
+                        <b className="text-info">{actor?.name}</b> and Popular Actors and
                         Actress{" "}
                     </h3>
                 </div>

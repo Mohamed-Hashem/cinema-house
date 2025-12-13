@@ -2,27 +2,48 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"
+        />
+        <meta name="theme-color" content="#0a0a0a" />
         <meta
             name="description"
             content="Cinema House - Discover movies, TV series, and actors. Browse trending content and explore ratings."
         />
+        <meta
+            name="keywords"
+            content="movies, tv series, actors, cinema, entertainment, tmdb, ratings, reviews"
+        />
+        <meta name="author" content="Cinema House" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta http-equiv="X-Content-Type-Options" content="nosniff" />
         <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+        <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+        <meta property="og:title" content="Cinema House" />
+        <meta
+            property="og:description"
+            content="Discover movies, TV series, and actors. Browse trending content and explore ratings."
+        />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Cinema House" />
+        <meta name="twitter:description" content="Discover movies, TV series, and actors" />
 
         <title>Cinema House</title>
-        <link rel="shortcut icon" href="movie.svg" type="image/svg+xml" />
+        <link rel="icon" href="movie.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="movie.svg" />
 
-        <!-- Preconnect to external resources -->
-        <link rel="preconnect" href="https://image.tmdb.org" crossorigin />
-        <link rel="preconnect" href="https://api.themoviedb.org" crossorigin />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://api.themoviedb.org" />
+        <link rel="preconnect" href="https://image.tmdb.org" />
         <link rel="dns-prefetch" href="https://image.tmdb.org" />
         <link rel="dns-prefetch" href="https://api.themoviedb.org" />
 
-        <!-- Preload critical font with font-display swap -->
+        <link rel="preload" href="%PUBLIC_URL%/static/js/vendors~main.chunk.js" as="script" />
+        <link rel="preload" href="%PUBLIC_URL%/static/js/main.chunk.js" as="script" />
+        <link rel="preload" href="%PUBLIC_URL%/static/media/Background.28d0a335.jpg" as="image" />
         <link
             rel="preload"
             href="https://fonts.gstatic.com/s/montserratalternates/v17/mFTiWacfw6zH4dthXcyms1lPpC8I_b0juU0xQIXFB7xG-GNxkg.woff2"
@@ -30,17 +51,88 @@
             type="font/woff2"
             crossorigin
         />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;600;700&display=swap"
+            rel="stylesheet"
+            media="print"
+            onload="this.media = 'all'"
+        />
+        <noscript
+            ><link
+                href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;600;700&display=swap"
+                rel="stylesheet"
+        /></noscript>
 
-        <!-- Preload critical resources -->
-        <link rel="preload" href="/static/js/16.a84a7fd9.chunk.js" as="script" />
-        <link rel="preload" href="/static/js/main.6dbdf0a4.chunk.js" as="script" />
-        <link rel="preload" href="/static/css/16.595005ff.chunk.css" as="style" />
-        <link rel="preload" href="/static/css/main.9c012449.chunk.css" as="style" />
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+                    Cantarell, sans-serif;
+                background-color: #0a0a0a;
+                color: #fff;
+                min-height: 100vh;
+                padding-top: 80px;
+            }
+            body.fonts-loaded {
+                font-family: "Montserrat Alternates", sans-serif;
+            }
+            #root {
+                min-height: 100vh;
+            }
+            nav {
+                min-height: 70px;
+                z-index: 1000;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+            }
+            .navbar {
+                background-color: #1a2a5e !important;
+            }
+            .initial-loader {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: #0a0a0a;
+            }
+            .spinner {
+                width: 50px;
+                height: 50px;
+                border: 3px solid #333;
+                border-top-color: #e50914;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+
+        <script>
+            if ("fonts" in document) {
+                document.fonts.ready.then(() => document.body.classList.add("fonts-loaded"));
+            } else {
+                document.body.classList.add("fonts-loaded");
+            }
+        </script>
     </head>
 
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
-
-        <div id="root"></div>
+        <div id="root">
+            <div class="initial-loader"><div class="spinner"></div></div>
+        </div>
     </body>
 </html>

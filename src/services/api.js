@@ -69,10 +69,10 @@ export const tmdbService = {
             signal,
         }),
 
-    getTVSeasonDetails: (seriesId, seasonNumber, signal) =>
+    getSeriesSeasonDetails: (seriesId, seasonNumber, signal) =>
         tmdbApi.get(`/tv/${seriesId}/season/${seasonNumber}`, { signal }),
 
-    getTVEpisodeDetails: (seriesId, seasonNumber, episodeNumber, signal) =>
+    getSeriesEpisodeDetails: (seriesId, seasonNumber, episodeNumber, signal) =>
         tmdbApi.get(`/tv/${seriesId}/season/${seasonNumber}/episode/${episodeNumber}`, { signal }),
 };
 

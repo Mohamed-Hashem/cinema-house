@@ -48,12 +48,12 @@ const ActorSeries = ({ series, goToSeriesAbout }) => {
                             <div className="captionLayer overflow-hidden mb-2  carouselItem">
                                 <img
                                     src={getPosterUrl(poster.poster_path)}
-                                    width="154"
-                                    height="231"
+                                    width="140"
+                                    height="210"
                                     loading="lazy"
                                     decoding="async"
                                     className="carouselItem__img"
-                                    alt={series.name ? series.name : series.title}
+                                    alt={series?.name || series?.title || "Actor"}
                                     onDragStart={handleDragStart}
                                 />
                                 <div className="item-layer position-absolute w-100 h-100"></div>
@@ -72,7 +72,7 @@ const ActorSeries = ({ series, goToSeriesAbout }) => {
                     </div>
                 ) : null
             ) ?? [],
-        [credits, series.name, series.title, goToSeriesAbout]
+        [credits, series?.name, series?.title, goToSeriesAbout]
     );
 
     if (!series?.id || !loading || !items.length) return null;
@@ -95,8 +95,8 @@ const ActorSeries = ({ series, goToSeriesAbout }) => {
 
             <div className="item  text-center my-3">
                 <h3>
-                    <b className="text-info "> {series.name ? series.name : series.title} </b> and
-                    The Series Who Take Part in{" "}
+                    <b className="text-info "> {series?.name || series?.title} </b> and The Series
+                    Who Take Part in{" "}
                 </h3>
             </div>
 

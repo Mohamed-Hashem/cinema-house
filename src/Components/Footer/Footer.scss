@@ -28,18 +28,19 @@ footer::after {
     width: 5px;
     background-color: $dotColor;
     color: $dotColor;
-    animation-name: dot;
+    animation-name: footerDot;
     animation-duration: 3s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
+    will-change: transform;
 }
 
-@keyframes dot {
+@keyframes footerDot {
     0% {
-        left: 0;
+        transform: translateX(0);
     }
 
     100% {
-        left: 100%;
+        transform: translateX(calc(100vw - 5px));
     }
 }

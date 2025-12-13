@@ -97,9 +97,8 @@ const SeriesRecommendations = ({ series, goToSeriesAbout }) => {
             <div className="w-100 line my-5"></div>
             <div className="item text-center my-3">
                 <h3>
-                    Recommendations Tv Series as{" "}
-                    <b className="text-info">{series.title ? series.title : series.name}</b> to
-                    Watch Now
+                    Recommended Series Like{" "}
+                    <b className="text-info">{series.title ? series.title : series.name}</b>
                 </h3>
             </div>
 

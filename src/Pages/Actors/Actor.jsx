@@ -7,7 +7,7 @@ const Actor = memo(({ actor, goToActorsAbout, index = 0 }) => {
     const displayName = actor.name || actor.title;
     const [imageError, setImageError] = useState(false);
 
-    const handleClick = useCallback(() => goToActorsAbout(actor), [goToActorsAbout, actor]);
+    const handleClick = useCallback(() => goToActorsAbout(actor), [goToActorsAbout, actor.id]);
     const handleKeyDown = useCallback(
         (e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -15,7 +15,7 @@ const Actor = memo(({ actor, goToActorsAbout, index = 0 }) => {
                 goToActorsAbout(actor);
             }
         },
-        [goToActorsAbout, actor]
+        [goToActorsAbout, actor.id]
     );
 
     const imageSrc =

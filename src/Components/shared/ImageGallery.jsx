@@ -3,12 +3,9 @@ import AliceCarousel from "react-alice-carousel";
 import PosterModal from "./PosterModal";
 
 const RESPONSIVE_CONFIG = {
-    0: { items: 2 },
-    576: { items: 2 },
-    768: { items: 2 },
-    992: { items: 2 },
-    1200: { items: 2 },
-    1400: { items: 2 },
+    0: { items: 1 },
+    512: { items: 3 },
+    1024: { items: 5 },
 };
 
 const NAV_BUTTON_STYLE = {
@@ -81,6 +78,8 @@ const ImageGallery = ({
                     transition: "all 0.25s ease",
                     backgroundColor: "#0d1117",
                     padding: "0 5px",
+                    maxWidth: "140px",
+                    margin: "0 auto",
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-4px) scale(1.02)";

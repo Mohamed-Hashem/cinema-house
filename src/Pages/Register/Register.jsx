@@ -125,6 +125,7 @@ class Register extends Component {
                                 className="form-control my-3"
                                 placeholder="First Name"
                                 autoComplete="given-name"
+                                disabled={this.state.waiting}
                                 aria-describedby={
                                     this.state.errors.first_name ? "first-name-error" : undefined
                                 }
@@ -148,6 +149,7 @@ class Register extends Component {
                                 className="form-control my-3"
                                 placeholder="Last Name"
                                 autoComplete="family-name"
+                                disabled={this.state.waiting}
                                 aria-describedby={
                                     this.state.errors.last_name ? "last-name-error" : undefined
                                 }
@@ -170,6 +172,7 @@ class Register extends Component {
                                 name="age"
                                 className="form-control my-3"
                                 placeholder="Age"
+                                disabled={this.state.waiting}
                                 aria-describedby={this.state.errors.age ? "age-error" : undefined}
                             />
                         </div>
@@ -191,6 +194,7 @@ class Register extends Component {
                                 className="form-control my-3"
                                 placeholder="Email"
                                 autoComplete="email"
+                                disabled={this.state.waiting}
                                 aria-describedby={
                                     this.state.errors.email ? "email-error" : undefined
                                 }
@@ -214,6 +218,7 @@ class Register extends Component {
                                 className="form-control my-3"
                                 placeholder="Password"
                                 autoComplete="new-password"
+                                disabled={this.state.waiting}
                                 aria-describedby={
                                     this.state.errors.password ? "password-error" : undefined
                                 }
@@ -229,7 +234,7 @@ class Register extends Component {
                             {this.state.errorMessage}
                         </div>
 
-                        <button type="submit" className="btn btn-info w-50 my-3">
+                        <button type="submit" className="btn btn-auth w-50 my-3">
                             {this.state.waiting ? "Waiting ... " : "Register"}
                         </button>
                     </form>

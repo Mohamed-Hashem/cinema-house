@@ -7,11 +7,11 @@ import SearchInput from "./SearchInput";
 
 const Navbar = memo(() => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [token] = useState(() => localStorage.getItem("token"));
     const dropdownRef = useRef(null);
 
-    // Memoize user decoding - only recompute if token changes
+    // Memoize user decoding - only decode once on mount
     const user = useMemo(() => {
-        const token = localStorage.getItem("token");
         if (!token) return null;
 
         try {
@@ -21,7 +21,7 @@ const Navbar = memo(() => {
             console.error("Token decode error:", error.message);
             return null;
         }
-    }, []);
+    }, [token]);
 
     const toggleDropdown = useCallback(() => {
         setIsDropdownOpen((prev) => !prev);

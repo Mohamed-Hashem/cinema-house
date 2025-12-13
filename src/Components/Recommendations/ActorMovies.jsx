@@ -48,8 +48,8 @@ const ActorMovies = ({ movie, goToMovieAbout }) => {
                             <div className="captionLayer overflow-hidden mb-2  carouselItem">
                                 <img
                                     src={getPosterUrl(poster.poster_path)}
-                                    width="154"
-                                    height="231"
+                                    width="140"
+                                    height="210"
                                     loading="lazy"
                                     decoding="async"
                                     alt={poster.name ? poster.name : poster.title}
@@ -96,8 +96,8 @@ const ActorMovies = ({ movie, goToMovieAbout }) => {
 
             <div className="item text-center my-3">
                 <h3>
-                    <b className="text-info "> {movie.name} </b> and The Movies Who Take Part
-                    in{" "}
+                    <b className="text-info "> {movie?.name || movie?.title} </b> and The Movies Who
+                    Take Part in{" "}
                 </h3>
             </div>
 

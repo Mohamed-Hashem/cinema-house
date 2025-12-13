@@ -7,7 +7,7 @@ const Serie = memo(({ serie, goToSeriesAbout, index = 0 }) => {
     const displayName = serie.title || serie.name;
     const [imageError, setImageError] = useState(false);
 
-    const handleClick = useCallback(() => goToSeriesAbout(serie), [goToSeriesAbout, serie]);
+    const handleClick = useCallback(() => goToSeriesAbout(serie), [goToSeriesAbout, serie.id]);
     const handleKeyDown = useCallback(
         (e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -15,7 +15,7 @@ const Serie = memo(({ serie, goToSeriesAbout, index = 0 }) => {
                 goToSeriesAbout(serie);
             }
         },
-        [goToSeriesAbout, serie]
+        [goToSeriesAbout, serie.id]
     );
 
     const voteClass =

@@ -114,6 +114,7 @@ class Login extends Component {
                                 className="form-control my-3"
                                 placeholder="Email"
                                 autoComplete="email"
+                                disabled={this.state.waiting}
                                 aria-describedby={
                                     this.state.errors.email ? "email-error" : undefined
                                 }
@@ -137,6 +138,7 @@ class Login extends Component {
                                 className="form-control my-3"
                                 placeholder="Password"
                                 autoComplete="current-password"
+                                disabled={this.state.waiting}
                                 aria-describedby={
                                     this.state.errors.password ? "password-error" : undefined
                                 }
@@ -153,7 +155,7 @@ class Login extends Component {
                             {this.state.errorMessage}
                         </div>
 
-                        <button type="submit" className="btn btn-info w-50 my-3">
+                        <button type="submit" className="btn btn-auth w-50 my-3">
                             {this.state.waiting ? "Waiting ... " : "Login"}
                         </button>
                     </form>

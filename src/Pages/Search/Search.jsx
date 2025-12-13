@@ -333,7 +333,7 @@ const Search = () => {
 
     return (
         <section
-            className="container tv"
+            className="container series"
             style={{ minHeight: "75.5vh" }}
             aria-label="Search results"
         >

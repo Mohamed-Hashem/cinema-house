@@ -26,8 +26,8 @@ nav img {
     width: 30px;
     height: 30px;
     margin-right: 5px;
-    position: relative;
-    top: -3px;
+    vertical-align: middle;
+    transform: translateY(-2px);
 }
 
 nav::after {
@@ -43,15 +43,16 @@ nav::after {
     animation-duration: 3s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
+    will-change: transform;
 }
 
 @keyframes dot {
     0% {
-        left: 0;
+        transform: translateX(0);
     }
 
     100% {
-        left: 100%;
+        transform: translateX(calc(100vw - 5px));
     }
 }
 
@@ -61,7 +62,11 @@ nav::after {
     border-radius: 6px;
     padding: 8px 16px;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition:
+        background-color 0.15s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+    will-change: transform;
 
     &:hover {
         background-color: $hover1Color;
@@ -108,9 +113,12 @@ nav::after {
     .dropdown-item {
         color: $whiteColor;
         padding: 10px 16px;
-        transition: all 0.2s ease;
+        transition:
+            background-color 0.15s ease,
+            transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         border-left: 3px solid transparent;
         background-color: transparent;
+        will-change: transform;
 
         &:hover:not(.disabled) {
             background-color: $hover1Color;

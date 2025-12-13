@@ -45,7 +45,7 @@ const ActorShow = ({ poster }) => {
             title={poster.name || poster.title}
             getImageUrl={getProfileUrl}
             aspectRatio="2/3"
-            itemsPerView={{ 0: 2, 576: 3, 992: 4, 1400: 5 }}
+            itemsPerView={{ 0: { items: 1 }, 512: { items: 3 }, 1024: { items: 5 } }}
         />
     );
 };

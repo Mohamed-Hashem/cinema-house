@@ -27,9 +27,19 @@ const Home = () => {
 
     const dispatch = useDispatch();
 
-    const movies = useSelector((state) => state.movies);
-    const series = useSelector((state) => state.series);
-    const actors = useSelector((state) => state.actors);
+    // Use shallow equality to prevent re-renders when array contents haven't changed
+    const movies = useSelector(
+        (state) => state.movies,
+        (a, b) => a.length === b.length
+    );
+    const series = useSelector(
+        (state) => state.series,
+        (a, b) => a.length === b.length
+    );
+    const actors = useSelector(
+        (state) => state.actors,
+        (a, b) => a.length === b.length
+    );
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -91,17 +101,17 @@ const Home = () => {
         [history]
     );
     const filteredMovies = useMemo(
-        () => movies.slice(0, 10).filter((movie) => movie.poster_path),
+        () => movies.filter((movie) => movie.poster_path).slice(0, 10),
         [movies]
     );
 
     const filteredSeries = useMemo(
-        () => series.slice(0, 10).filter((serie) => serie.poster_path),
+        () => series.filter((serie) => serie.poster_path).slice(0, 10),
         [series]
     );
 
     const filteredActors = useMemo(
-        () => actors.slice(0, 10).filter((actor) => actor.profile_path),
+        () => actors.filter((actor) => actor.profile_path).slice(0, 10),
         [actors]
     );
 

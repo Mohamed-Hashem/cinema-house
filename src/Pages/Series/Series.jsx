@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import axios from "axios";
 import { LoadingSpinner, SkeletonCard } from "../../Components/shared";
-import Serie from "../Series/Serie";
+import Serie from "./Serie";
+import "./Series.scss";
 
 const apiKey = process.env.REACT_APP_TMDB_API_KEY;
 
-class Tv extends Component {
+class Series extends Component {
     _isMounted = false;
     abortController = null;
 
@@ -131,12 +132,8 @@ class Tv extends Component {
         const filteredSeries = results.filter((serie) => serie.poster_path);
 
         return (
-            <section
-                className="container series"
-                style={{ minHeight: "67vh" }}
-                aria-label="TV Series"
-            >
-                <h1 className="sr-only">Popular TV Series</h1>
+            <section className="container series" style={{ minHeight: "67vh" }} aria-label="Series">
+                <h1 className="sr-only">Popular Series</h1>
                 {filteredSeries.length > 0 ? (
                     <>
                         <div className="row">
@@ -170,7 +167,7 @@ class Tv extends Component {
                         className="d-flex justify-content-center align-items-center"
                         style={{ minHeight: "50vh" }}
                     >
-                        <p className="text-muted h5">No TV shows available</p>
+                        <p className="text-muted h5">No series available</p>
                     </div>
                 )}
             </section>
@@ -178,4 +175,4 @@ class Tv extends Component {
     }
 }
 
-export default Tv;
+export default Series;

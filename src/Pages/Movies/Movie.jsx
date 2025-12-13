@@ -7,7 +7,7 @@ const Movie = memo(({ movie, goToMovieAbout, index = 0 }) => {
     const displayName = movie.title || movie.name;
     const [imageError, setImageError] = useState(false);
 
-    const handleClick = useCallback(() => goToMovieAbout(movie), [goToMovieAbout, movie]);
+    const handleClick = useCallback(() => goToMovieAbout(movie), [goToMovieAbout, movie.id]);
     const handleKeyDown = useCallback(
         (e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -15,7 +15,7 @@ const Movie = memo(({ movie, goToMovieAbout, index = 0 }) => {
                 goToMovieAbout(movie);
             }
         },
-        [goToMovieAbout, movie]
+        [goToMovieAbout, movie.id]
     );
 
     const voteClass =

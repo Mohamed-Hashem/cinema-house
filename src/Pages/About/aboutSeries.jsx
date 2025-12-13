@@ -6,11 +6,11 @@ import SeriesSimilar from "../../Components/Recommendations/SeriesSimilar";
 import SeriesActors from "./../../Components/Actors/SeriesActors";
 import SeriesRecommendations from "./../../Components/Recommendations/SeriesRecommendations";
 import SeriesShow from "./../../Components/ShowImages/SeriesShow";
-import Seasons from "./../../Components/Tv Seasons/Seasons";
+import Seasons from "./../../Components/Series Seasons/Seasons";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
-export default class aboutTv extends Component {
+export default class AboutSeries extends Component {
     isLoading = false;
     _isMounted = false;
 
@@ -287,7 +287,7 @@ export default class aboutTv extends Component {
                                             </tr>
                                             <tr>
                                                 <th>Media Type</th>
-                                                <td> Tv Series </td>
+                                                <td> Series </td>
                                             </tr>
                                             <tr>
                                                 <th>Vote Average</th>
