@@ -125,12 +125,16 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 - [x] **Code Splitting**: Named webpack chunks with webpackChunkName comments for better caching
     - `actors-list` (1.72 KB), `actor-detail` (2.49 KB), `tv-detail` (3.71 KB), `movie-detail` (3.61 KB)
     - Eliminated cross-route code leakage (TV code no longer loads on Actor pages)
+- [x] **App-Level Lazy Loading**: Main App component lazy loaded in index.js with Suspense boundary
+- [x] **Initial HTML Loader**: Pure CSS spinner in index.html for instant feedback (0ms TTFB to first paint)
+- [x] **Smooth Loader Transition**: Fade-out animation when React app mounts (300ms transition)
 - [x] **Optimized Image Delivery**: Reduced network payload from 93 MB to under 5 MB (~95% reduction)
     - Carousel posters: original (1-1.5 MB) → w342 (~30-50 KB)
     - Detail page posters: original (1-1.5 MB) → w500 (~50-80 KB)
     - Backdrop images: original (1-2 MB) → w780 (~100-200 KB)
     - Episode stills: original (500 KB) → w300 (~30 KB)
 - [x] **Loading States**: Skeleton cards (10 per page) for consistent UX during data fetching
+- [x] **Auth Page Loading**: Login/Register pages show spinner until CSS is ready (prevents FOUC)
 - [x] **Caching Strategy**: 1-year cache for static assets (462 KiB savings), immutable resources
 - [x] **Security Headers**: X-Content-Type-Options, X-Frame-Options, XSS Protection, Referrer-Policy
 - [x] **Resource Hints**: Preconnect, DNS prefetch for TMDB API and images (310 ms savings)
@@ -151,6 +155,7 @@ Cinema House is a full-stack movies and TV shows website using TMDB API for data
 
 - Image Delivery: 11.8 MB savings (95%+ reduction)
 - Total Blocking Time: Reduced via lazy loading
+- First Contentful Paint: Instant with HTML spinner
 - INP (Interaction to Next Paint): Improved from fewer main-thread image decodes
 - Cumulative Layout Shift: Minimized with proper image dimensions
 

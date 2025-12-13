@@ -3,6 +3,7 @@ import * as Joi from "joi-browser";
 import { toast } from "react-toastify";
 import { formData } from "../../Redux/Actions/Actions";
 import { connect } from "react-redux";
+import { LoadingSpinner } from "../../Components/shared";
 
 class Login extends Component {
     _isMounted = false;
@@ -15,6 +16,7 @@ class Login extends Component {
             status: "",
             waiting: false,
             errors: {},
+            pageReady: false,
         };
 
         this.User = {
@@ -30,6 +32,13 @@ class Login extends Component {
 
     componentDidMount() {
         this._isMounted = true;
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                if (this._isMounted) {
+                    this.setState({ pageReady: true });
+                }
+            }, 100);
+        });
     }
 
     handleChange = (e) => {
@@ -93,6 +102,17 @@ class Login extends Component {
     }
 
     render() {
+        if (!this.state.pageReady) {
+            return (
+                <div
+                    className="d-flex align-items-center justify-content-center"
+                    style={{ minHeight: "100vh", backgroundColor: "#141414" }}
+                >
+                    <LoadingSpinner height={80} width={80} color="#e50914" />
+                </div>
+            );
+        }
+
         return (
             <section
                 className="d-flex align-items-center justify-content-center"
